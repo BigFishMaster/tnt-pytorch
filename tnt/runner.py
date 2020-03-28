@@ -35,7 +35,7 @@ def create_config():
     return config
 
 
-def main(config):
+def runner(config):
     builder = ModelBuilder(config)
     train_iter = GDLoader.from_config(cfg=config["data"], mode="train")
     valid_iter = GDLoader.from_config(cfg=config["data"], mode="valid")
@@ -56,7 +56,11 @@ def main(config):
     builder.run(train_iter=train_iter, valid_iter=valid_iter)
 
 
-if __name__ == "__main__":
+def main():
     config = create_config()
     init_logger(config["log_file"])
-    main(config)
+    runner(config)
+
+
+if __name__ == "__main__":
+    main()
