@@ -180,7 +180,7 @@ class ModelBuilder:
             output = self.model.forward(input)
 
             if mode != "test":
-                if self.gpu is not None:
+                if torch.cuda.is_available():
                     target = target.cuda(self.gpu, non_blocking=True)
                 loss = self.loss(output, target)
 

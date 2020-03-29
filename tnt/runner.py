@@ -24,7 +24,7 @@ def create_config():
         yaml_config = yaml.load(open(args.config), Loader=yaml.SafeLoader)
         config.update(yaml_config)
     config["model"]["gpu"] = config["global"]["gpu"]
-    config["model"]["num_classes"] = config["num_classes"]
+    config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
     log_dir = config["global"]["log_dir"]
     if not os.path.exists(log_dir):
