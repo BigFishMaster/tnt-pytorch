@@ -127,7 +127,9 @@ class ModelBuilder:
         self.init_state()
 
         # used to initialize tranforms (mean, std, color space, image size, range etc.)
-        config["data"]["opts"] = self.model
+        # Note: the model is DataParallel.module
+        config["data"]["opts"] = self.model.module if hasattr(self.model, "module") \
+                                 else self.model
 
     def init_state(self):
         self.min_valid_loss = 1.0e+10
@@ -179,7 +181,7 @@ class ModelBuilder:
 
             if mode != "test":
                 if self.gpu is not None:
-                    target = target.cuda(self.gpu, non_locking=True)
+                    target = target.cuda(self.gpu, non_blocking=True)
                 loss = self.loss(output, target)
 
                 if mode == "train":
