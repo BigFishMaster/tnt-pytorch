@@ -1,7 +1,6 @@
 import time
 import sys
 import os
-import pretrainedmodels
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
@@ -12,6 +11,7 @@ from tnt.utils.logging import logger
 from tnt.utils.io import load_model_from_file, save_checkpoint, load_checkpoint
 from tnt.utils.statistics import Statistics
 from tnt.metric import Metric
+import tnt.pretrainedmodels as pretrainedmodels
 
 
 class ModelImpl:
