@@ -130,8 +130,8 @@ class ModelBuilder:
         # Note: the model is DataParallel.module
         config["data"]["opts"] = self.model.module if hasattr(self.model, "module") \
                                  else self.model
-        if config["image_size"] and hasattr(config["data"]["opts"], "input_sizes"):
-            config["data"]["opts"].input_sizes = [3, config["image_size"], config["image_size"]]
+        if config["image_size"] and hasattr(config["data"]["opts"], "input_size"):
+            config["data"]["opts"].input_size = [3, config["image_size"], config["image_size"]]
 
     def init_state(self):
         self.min_valid_loss = 1.0e+10
