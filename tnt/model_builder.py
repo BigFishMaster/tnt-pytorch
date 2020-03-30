@@ -179,7 +179,7 @@ class ModelBuilder:
 
             if self.gpu is not None:
                 input = input.cuda(self.gpu, non_blocking=True)
-            output = self.model.forward(input)
+            output = self.model(input)
 
             if mode != "test":
                 if torch.cuda.is_available():
