@@ -36,6 +36,8 @@ class Field:
             # valid and test
             self.transforms = TransformImage(opts)
 
+        logger.info("In mode %s, image transforms are: %s", mode, self.transforms)
+
         self._fns = []
         for m, t in zip(self.modals, self.types):
             if m == "image" and t == "path":

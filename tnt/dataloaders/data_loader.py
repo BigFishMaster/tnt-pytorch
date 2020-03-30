@@ -4,7 +4,6 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
 from tnt.utils.logging import logger
 from tnt.dataloaders.field import Field
-from tnt.transform_image import TransformImage
 
 
 class GeneralDataLoader(Dataset):
