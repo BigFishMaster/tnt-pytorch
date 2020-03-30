@@ -14,7 +14,7 @@ class GeneralDataLoader(Dataset):
         logger.info("In mode {}, data_list has length of {}.".format(mode, len(self.data_list)))
 
         # field processor
-        self._field = Field.from_cfg(cfg)
+        self._field = Field.from_cfg(cfg, mode=mode)
 
         # sampling strategy
         sampler_config = cfg["sampler"]

@@ -78,11 +78,11 @@ class TransformImage(object):
         return tensor
 
     def __repr__(self):
-        return "Attributes:\n" \
+        return "\n===Attributes===:\n" \
                "size:" + str(self.input_size) + "\n" + "range:" + str(self.input_range) + "\n" \
                "color space:" + str(self.input_space) + "\n" \
                "mean:" + str(self.mean) + "\n" + "std:" + str(self.std) + "\n" \
-               "Operation:\n" \
+               "===Operation===:\n" \
                "scale:" + str(self.scale) + "\n" \
                "random_crop:" + str(self.random_crop) + "\n" \
                "random_hflip:" + str(self.random_hflip) + "\n" \
