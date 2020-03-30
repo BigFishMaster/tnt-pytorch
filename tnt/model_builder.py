@@ -175,6 +175,7 @@ class ModelBuilder:
             if mode != "test":
                 input, target = batch
             else:
+                # TODO: process the output when testing
                 input, target = batch, None
 
             if self.gpu is not None:
