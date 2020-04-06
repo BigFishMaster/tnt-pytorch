@@ -82,7 +82,7 @@ class GeneralDataLoader(Dataset):
             self.collate_fn = multilabel_collate_fn
             class_weights = Counter()
             for i, data in enumerate(self.data_list):
-                if i % 10000 == 0:
+                if i % 100000 == 0:
                     logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
                 label = self._field(data, last=True)
                 # label[0] is a list
@@ -98,8 +98,8 @@ class GeneralDataLoader(Dataset):
             weights = 1.0 / np.array(weights)
             sample_weights = []
             for i, sample_label in enumerate(sample_labels):
-                if i % 10000 == 0:
-                    print("prcessoing sample weight:", i)
+                if i % 100000 == 0:
+                    logger.info("prcessoing sample weight: %d/%d", i, len(sample_labels))
                 ws = weights[sample_label]
                 w = float(np.mean(ws))
                 sample_weights.append(w)
