@@ -97,7 +97,9 @@ class GeneralDataLoader(Dataset):
             weights = [s[1] for s in sorted_weights]
             weights = 1.0 / np.array(weights)
             sample_weights = []
-            for sample_label in sample_labels:
+            for i, sample_label in enumerate(sample_labels):
+                if i % 10000 == 0:
+                    print("prcessoing sample weight:", i)
                 ws = weights[sample_label]
                 w = float(np.mean(ws))
                 sample_weights.append(w)

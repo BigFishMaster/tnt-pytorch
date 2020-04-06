@@ -54,7 +54,7 @@ def calc_topk_multilabel(output, target, topk=(1,)):
         correct = torch.zeros_like(pred)
         for i in range(K):
             c = pred.eq(target[:, i].view(1, -1).expand_as(pred))
-            correct += c
+            correct += c.long()
 
         res = []
         for k in topk:
