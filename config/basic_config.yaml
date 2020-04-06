@@ -4,11 +4,11 @@ data:
   num_classes: 2
   mode: [train, valid]
   # relative or absolute path to train, valid or test file
-  train: ./tests/data/full_set/train.txt
-  valid: ./tests/data/full_set/valid.txt
+  train: ../tests/data/full_set/train.txt
+  valid: ../tests/data/full_set/valid.txt
   test: null
   # prefix path for each sample
-  data_prefix: ./tests/data/full_set/
+  data_prefix: ../tests/data/full_set/
   # sampling strategy
   sampler:
     # class_balanced, null
@@ -40,7 +40,7 @@ global:
 
 model:
   # pretrained model should be placed into "pretrained" folder
-  TORCH_HOME: pretrained/
+  TORCH_HOME: ../pretrained/
   # network+classes+dataset (with pretraining), or network (w/o pretraining)
   name: resnet18
   # use default pretrained model: "imagenet"
