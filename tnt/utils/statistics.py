@@ -20,7 +20,7 @@ class Statistics(object):
     def update(self, stat):
         self.loss += stat.loss
         self.n += stat.n
-        self.n_correct += stat.n_correct
+        self.n_correct.update(stat.n_correct)
 
     def acc(self, topk=1):
         """ compute accuracy """
