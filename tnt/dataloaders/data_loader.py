@@ -2,6 +2,7 @@ import numpy as np
 from collections import Counter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
+from torch.utils.data._utils.collate import default_collate
 from tnt.utils.logging import logger
 from tnt.utils.collate_fn import multilabel_collate_fn
 from tnt.dataloaders.field import Field
@@ -33,7 +34,7 @@ class GeneralDataLoader(Dataset):
             return None
         self = cls(cfg, mode)
         if not hasattr(self, "collate_fn"):
-            self.collate_fn = None
+            self.collate_fn = default_collate
         else:
             logger.info("collate_fn is initalized in create_smapler.")
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=(self.sampler is None),
