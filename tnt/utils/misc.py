@@ -39,3 +39,28 @@ def calc_topk_2d(output, target, topk=(1,)):
             correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.item())
         return res
+
+
+def calc_topk_multilabel(output, target, topk=(1,)):
+    """Computes the accuracy (hit-rate) over the k top predictions for the specified values of k"""
+    with torch.no_grad():
+        maxk = max(topk)
+
+        _, pred = output.topk(maxk, 1, True, True)
+        # pred: batch_size x maxk
+        pred = pred.t()
+        # target: batch_size x K
+        batch_size, K = target.shape
+        correct = torch.zeros_like(pred)
+        for i in range(K):
+            c = pred.eq(target[:, i].view(1, -1).expand_as(pred))
+            correct += c
+
+        res = []
+        for k in topk:
+            topk_correct = correct[:k].sum(0)
+            flag = topk_correct > 1
+            topk_correct[flag] = 1
+            correct_k = topk_correct.view(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.item())
+        return res

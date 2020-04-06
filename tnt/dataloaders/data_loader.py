@@ -3,6 +3,7 @@ from collections import Counter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
 from tnt.utils.logging import logger
+from tnt.utils.collate_fn import multilabel_collate_fn
 from tnt.dataloaders.field import Field
 
 
@@ -31,13 +32,22 @@ class GeneralDataLoader(Dataset):
         if (mode not in cfg) or (not cfg[mode]):
             return None
         self = cls(cfg, mode)
+        if not hasattr(self, "collate_fn"):
+            self.collate_fn = None
+        else:
+            logger.info("collate_fn is initalized in create_smapler.")
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=(self.sampler is None),
-                                 num_workers=self.num_workers, pin_memory=True, sampler=self.sampler)
+                                 num_workers=self.num_workers, collate_fn=self.collate_fn,
+                                 pin_memory=True, sampler=self.sampler)
         return data_loader
 
     def __getitem__(self, index):
         data = self.data_list[index]
-        return self._field(data)
+        # there are two cases:
+        # 1. image, label
+        # 2. image, [label1, label2]
+        result = self._field(data)
+        return result
 
     def __len__(self):
         return len(self.data_list)
@@ -55,16 +65,41 @@ class GeneralDataLoader(Dataset):
                 sample_labels.append(label[0])
             logger.info("creating sampler totally: %d", len(self.data_list))
 
-        class_weights = Counter()
-        class_weights.update(sample_labels)
-        if len(class_weights) != self.num_classes:
-            raise ValueError("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+            class_weights = Counter()
+            class_weights.update(sample_labels)
+            if len(class_weights) != self.num_classes:
+                raise ValueError("{} classes have no samples.".format(self.num_classes-len(class_weights)))
 
-        sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
-        weights = [s[1] for s in sorted_weights]
-        weights = 1.0 / np.array(weights)
-        sample_weights = weights[sample_labels]
-        sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
-                                        replacement=replacement)
-        return sampler
+            sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
+            weights = [s[1] for s in sorted_weights]
+            weights = 1.0 / np.array(weights)
+            sample_weights = weights[sample_labels]
+            sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
+                                            replacement=replacement)
+            return sampler
+        elif strategy == "multilabel_balanced":
+            self.collate_fn = multilabel_collate_fn
+            class_weights = Counter()
+            for i, data in enumerate(self.data_list):
+                if i % 10000 == 0:
+                    logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
+                label = self._field(data, last=True)
+                # label[0] is a list
+                sample_labels.append(label[0])
+                class_weights.update(label[0])
+            logger.info("creating sampler totally: %d", len(self.data_list))
 
+            if len(class_weights) != self.num_classes:
+                raise ValueError("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+
+            sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
+            weights = [s[1] for s in sorted_weights]
+            weights = 1.0 / np.array(weights)
+            sample_weights = []
+            for sample_label in sample_labels:
+                ws = weights[sample_label]
+                w = float(np.mean(ws))
+                sample_weights.append(w)
+            sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
+                                            replacement=replacement)
+            return sampler

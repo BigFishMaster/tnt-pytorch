@@ -6,7 +6,7 @@ from tnt.utils.io import *
 
 
 __FORMAT__ = ["txt", "json"]
-__MODAL__ = ["image", "text", "audio", "video", "label"]
+__MODAL__ = ["image", "text", "audio", "video", "label", "multi_label"]
 __TYPE__ = ["path", "npy", "int"]
 
 
@@ -46,6 +46,8 @@ class Field:
                 fn = partial(load_image_from_npy, data_prefix=data_prefix, transforms=self.transforms)
             elif m == "label" and t == "int":
                 fn = lambda x: int(x)
+            elif m in ["multi_label", "multi-label"] and t == "int":
+                fn = lambda x: [int(i) for i in x]
             else:
                 raise NotImplementedError("modals: {}, type: {} not implemented.".format(m, t))
             self._fns.append(fn)
@@ -61,6 +63,8 @@ class Field:
 
     def __call__(self, data, last=False):
         fields = self._getter(data)
+        if len(fields) > 2:
+            fields = [fields[0], fields[1:]]
         return self._parser(fields, last=last)
 
     @classmethod
