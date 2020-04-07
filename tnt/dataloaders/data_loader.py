@@ -13,6 +13,7 @@ class GeneralDataLoader(Dataset):
         self.num_classes = cfg["num_classes"]
         filename = cfg[mode]
         self.data_list = open(filename, "r", encoding="utf8").readlines()
+        self.data_list = np.array(self.data_list, dtype=np.string_)
         logger.info("In mode {}, data_list has length of {}.".format(mode, len(self.data_list)))
 
         # field processor
@@ -43,7 +44,7 @@ class GeneralDataLoader(Dataset):
         return data_loader
 
     def __getitem__(self, index):
-        data = self.data_list[index]
+        data = self.data_list[index].decode()
         # there are two cases:
         # 1. image, label
         # 2. image, [label1, label2]
@@ -77,6 +78,11 @@ class GeneralDataLoader(Dataset):
             sample_weights = weights[sample_labels]
             sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
                                             replacement=replacement)
+            del weights
+            del sample_weights
+            del sample_labels
+            del class_weights
+            del sorted_weights
             return sampler
         elif strategy == "multilabel_balanced":
             self.collate_fn = multilabel_collate_fn
@@ -105,4 +111,10 @@ class GeneralDataLoader(Dataset):
                 sample_weights.append(w)
             sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
                                             replacement=replacement)
+            del weights
+            del class_weights
+            del sorted_weights
+            del sample_weights
+            del sample_labels
+
             return sampler
