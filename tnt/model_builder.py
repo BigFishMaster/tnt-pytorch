@@ -201,7 +201,7 @@ class ModelBuilder:
 
                 batch_stats = self.metric(output=output, target=target, loss=loss.item())
                 report_stats.update(batch_stats)
-                if (step+1) % self.report_interval == 0 and mode == "train":
+                if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)
                     current_step = self.train_steps
                     report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
