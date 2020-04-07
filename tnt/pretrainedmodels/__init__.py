@@ -8,6 +8,18 @@ from .models.utils import model_names
 
 # to support pretrainedmodels.__dict__['nasnetalarge']
 # but depreciated
+from .models.billion_scale_models import resnet18_ssl
+from .models.billion_scale_models import resnet18_swsl
+from .models.billion_scale_models import resnet50_ssl
+from .models.billion_scale_models import resnet50_swsl
+from .models.billion_scale_models import resnext50_32x4d_ssl
+from .models.billion_scale_models import resnext50_32x4d_swsl
+from .models.billion_scale_models import resnext101_32x4d_ssl
+from .models.billion_scale_models import resnext101_32x4d_swsl
+from .models.billion_scale_models import resnext101_32x8d_ssl
+from .models.billion_scale_models import resnext101_32x8d_swsl
+from .models.billion_scale_models import resnext101_32x16d_ssl
+from .models.billion_scale_models import resnext101_32x16d_swsl
 from .models.fbresnet import fbresnet152
 from .models.cafferesnet import cafferesnet101
 from .models.bninception import bninception

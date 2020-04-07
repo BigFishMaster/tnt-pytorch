@@ -39,10 +39,16 @@ class ModelImpl:
 
         # TODO: initialize the last_linear layer
         # url: https://pytorch.org/docs/master/notes/autograd.html
-        in_features = model.last_linear.in_features
-        out_features = model.last_linear.out_features
-        if out_features != num_classes:
-            model.last_linear = nn.Linear(in_features, num_classes)
+        if hasattr(model, "last_linear"):
+            in_features = model.last_linear.in_features
+            out_features = model.last_linear.out_features
+            if out_features != num_classes:
+                model.last_linear = nn.Linear(in_features, num_classes)
+        else:  #  model.fc
+            in_features = model.fc.in_features
+            out_features = model.fc.out_features
+            if out_features != num_classes:
+                model.fc = nn.Linear(in_features, num_classes)
 
         if gpu is not None:
             torch.cuda.set_device(gpu)

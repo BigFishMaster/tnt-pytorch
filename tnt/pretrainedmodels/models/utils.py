@@ -1,4 +1,5 @@
 from __future__ import print_function, division, absolute_import
+from .billion_scale_models import model_names as bs_model_names
 from .fbresnet import pretrained_settings as fbresnet_settings
 from .bninception import pretrained_settings as bninception_settings
 from .resnext import pretrained_settings as resnext_settings
@@ -37,3 +38,5 @@ for settings in all_settings:
     for model_name, model_settings in settings.items():
         pretrained_settings[model_name] = model_settings
         model_names.append(model_name)
+
+model_names += bs_model_names

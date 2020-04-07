@@ -1,4 +1,18 @@
 from __future__ import print_function, division, absolute_import
+
+from .billion_scale_models import resnet18_ssl
+from .billion_scale_models import resnet18_swsl
+from .billion_scale_models import resnet50_ssl
+from .billion_scale_models import resnet50_swsl
+from .billion_scale_models import resnext50_32x4d_ssl
+from .billion_scale_models import resnext50_32x4d_swsl
+from .billion_scale_models import resnext101_32x4d_ssl
+from .billion_scale_models import resnext101_32x4d_swsl
+from .billion_scale_models import resnext101_32x8d_ssl
+from .billion_scale_models import resnext101_32x8d_swsl
+from .billion_scale_models import resnext101_32x16d_ssl
+from .billion_scale_models import resnext101_32x16d_swsl
+
 from .fbresnet import fbresnet152
 
 from .cafferesnet import cafferesnet101
