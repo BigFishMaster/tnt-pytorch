@@ -21,11 +21,8 @@ class GeneralDataLoader(Dataset):
 
         # sampling strategy
         sampler_config = cfg["sampler"]
-        self.sampler = None
-        if mode == "train" and sampler_config is not None:
-            self.sampler = self._create_sampler(sampler_config)
-        else:
-            self.sampler = None
+        self.sampler = self._create_sampler(sampler_config, mode)
+        self.collate_fn = self._create_collate(sampler_config)
         self.batch_size = sampler_config.get("batch_size", 10)
         self.num_workers = sampler_config.get("num_workers", 4)
 
@@ -54,7 +51,16 @@ class GeneralDataLoader(Dataset):
     def __len__(self):
         return len(self.data_list)
 
-    def _create_sampler(self, cfg):
+    def _create_collate(self, cfg):
+        strategy = cfg.get("strategy")
+        if strategy == "multilabel_balanced":
+            return multilabel_collate_fn
+        else:
+            return default_collate
+
+    def _create_sampler(self, cfg, mode):
+        if mode != "train":
+            return None
         strategy = cfg.get("strategy")
         num_samples = cfg.get("num_samples") or len(self.data_list)
         replacement = cfg.get("replacement") or True
@@ -85,7 +91,6 @@ class GeneralDataLoader(Dataset):
             del sorted_weights
             return sampler
         elif strategy == "multilabel_balanced":
-            self.collate_fn = multilabel_collate_fn
             class_weights = Counter()
             for i, data in enumerate(self.data_list):
                 if i % 100000 == 0:
