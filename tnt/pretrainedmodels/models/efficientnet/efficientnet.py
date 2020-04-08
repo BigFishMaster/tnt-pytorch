@@ -333,7 +333,6 @@ class EfficientNet(nn.Module):
         # Stem
         if not fix_stem:
             stem_size = round_channels(stem_size, channel_multiplier, channel_divisor, channel_min)
-        print(stem_size)
         self.conv_stem = create_conv2d(self._in_chs, stem_size, 3, stride=2, padding=pad_type)
         self.bn1 = norm_layer(stem_size, **norm_kwargs)
         self.act1 = act_layer(inplace=True)
