@@ -13,7 +13,7 @@ data:
   sampler:
     # class_balanced, null
     strategy: class_balanced
-    batch_size: 20
+    batch_size: 2
     num_workers: 0
     num_samples: null
     replacement: true
@@ -42,7 +42,7 @@ model:
   # pretrained model should be placed into "pretrained" folder
   TORCH_HOME: ../pretrained/
   # network+classes+dataset (with pretraining), or network (w/o pretraining)
-  name: resnet18_ssl
+  name: efficientnet_b0
   # use default pretrained model: "imagenet"
   # or usre-defined model
   pretrained: imagenet

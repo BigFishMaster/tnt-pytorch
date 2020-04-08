@@ -39,11 +39,20 @@ class ModelImpl:
 
         # TODO: initialize the last_linear layer
         # url: https://pytorch.org/docs/master/notes/autograd.html
-        if hasattr(model, "last_linear"):
+
+        # for efficientnet models:
+        if hasattr(model, "classifier"):
+            in_features = model.classifier.in_features
+            out_features = model.classifier.out_features
+            if out_features != num_classes:
+                model.classifier = nn.Linear(in_features, num_classes)
+        # for torchvision models
+        elif hasattr(model, "last_linear"):
             in_features = model.last_linear.in_features
             out_features = model.last_linear.out_features
             if out_features != num_classes:
                 model.last_linear = nn.Linear(in_features, num_classes)
+        # for billionscale models
         else:  #  model.fc
             in_features = model.fc.in_features
             out_features = model.fc.out_features
