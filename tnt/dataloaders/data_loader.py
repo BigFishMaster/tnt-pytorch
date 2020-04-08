@@ -69,7 +69,7 @@ class GeneralDataLoader(Dataset):
             for i, data in enumerate(self.data_list):
                 if i % 10000 == 0:
                     logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
-                label = self._field(data, last=True)
+                label = self._field(data.decode(), last=True)
                 sample_labels.append(label[0])
             logger.info("creating sampler totally: %d", len(self.data_list))
 
@@ -95,7 +95,7 @@ class GeneralDataLoader(Dataset):
             for i, data in enumerate(self.data_list):
                 if i % 100000 == 0:
                     logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
-                label = self._field(data, last=True)
+                label = self._field(data.decode(), last=True)
                 # label[0] is a list
                 sample_labels.append(label[0])
                 class_weights.update(label[0])
