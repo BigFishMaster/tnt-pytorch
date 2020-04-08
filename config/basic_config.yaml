@@ -42,7 +42,7 @@ model:
   # pretrained model should be placed into "pretrained" folder
   TORCH_HOME: ../pretrained/
   # network+classes+dataset (with pretraining), or network (w/o pretraining)
-  name: efficientnet_b0
+  name: resnext101_32x4d
   # use default pretrained model: "imagenet"
   # or usre-defined model
   pretrained: imagenet

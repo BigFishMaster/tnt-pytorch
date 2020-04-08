@@ -83,4 +83,3 @@ from .efficientnet import mixnet_xxl
 from .efficientnet import tf_mixnet_l
 from .efficientnet import tf_mixnet_m
 from .efficientnet import tf_mixnet_s
-from .efficientnet import model_names
