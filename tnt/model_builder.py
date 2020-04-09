@@ -123,6 +123,15 @@ class OptImpl:
                 momentum=momentum,
                 weight_decay=weight_decay
             )
+        elif optimizer_name == "RMSprop":
+            lr = config["lr"]
+            momentum = config["momentum"]
+            weight_decay = config["weight_decay"]
+            optimizer = optimizers.__dict__[optimizer_name](
+                model.parameters(), lr,
+                momentum=momentum,
+                weight_decay=weight_decay
+            )
 
         self.optimizer = optimizer
 
@@ -136,6 +145,7 @@ class ModelBuilder:
         self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
+        self.clip_norm = config["optimizer"].get("clip_norm", None)
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
         self.init_global(config["global"])
@@ -206,6 +216,8 @@ class ModelBuilder:
                     self.train_steps += 1
                     self.optimizer.zero_grad()
                     loss.backward()
+                    if self.clip_norm is not None and self.clip_norm > 0:
+                        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_norm)
                     self.optimizer.step()
 
                 batch_stats = self.metric(output=output, target=target, loss=loss.item())

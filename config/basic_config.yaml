@@ -42,7 +42,7 @@ model:
   # pretrained model should be placed into "pretrained" folder
   TORCH_HOME: ../pretrained/
   # network+classes+dataset (with pretraining), or network (w/o pretraining)
-  name: resnext101_32x4d
+  name: resnet18
   # use default pretrained model: "imagenet"
   # or usre-defined model
   pretrained: imagenet
@@ -52,7 +52,10 @@ loss:
   name: CrossEntropyLoss
 
 optimizer:
-  name: SGD
+  # SGD, RMSprop
+  name: RMSprop
+  # null or 5
+  clip_norm: null
   lr: 0.01
   momentum: 0.9
   weight_decay: 0.0003
@@ -62,7 +65,8 @@ metric:
   acc_topk: [1]
 
 lr_strategy:
-  name: stepwise
+  # stepwise, constant
+  name: constant
   start_lr: 0.001
   step_epochs: 30
   decay_scale: 0.1
