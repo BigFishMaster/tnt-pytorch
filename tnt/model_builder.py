@@ -146,6 +146,8 @@ class ModelBuilder:
         self.loss = LossImpl.from_config(config["loss"])
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
         self.clip_norm = config["optimizer"].get("clip_norm", None)
+        if self.clip_norm is not None and self.clip_norm > 0:
+            logger.info("gradients will clipped to clip_norm:{}".format(self.clip_norm))
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
         self.init_global(config["global"])
