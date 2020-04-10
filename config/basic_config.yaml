@@ -4,7 +4,7 @@ data:
   num_classes: 2
   mode: [train, valid]
   # relative or absolute path to train, valid or test file
-  train: ../tests/data/full_set/train.txt
+  train: ../tests/data/full_set/valid.txt
   valid: ../tests/data/full_set/valid.txt
   test: null
   # prefix path for each sample
@@ -33,7 +33,7 @@ global:
   log_dir: ./runs/
   log_file: train.log
   num_epochs: 100
-  save_epoch_steps: 5
+  save_epoch_steps: 1
   save_model_file: model-{}.pt
   save_checkpoint_file: last_checkpoint.txt
   report_interval: 4

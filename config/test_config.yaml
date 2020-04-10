@@ -6,15 +6,20 @@ data:
   # relative or absolute path to train, valid or test file
   train: null
   valid: null
-  test: "./test.txt"
+  test: ../tests/test.txt
+  output:
+    # file to save
+    file: null
+    # topk or raw
+    mode: top5
   # prefix path for each sample
-  data_prefix: null
+  data_prefix: ../tests/
   # sampling strategy
   sampler:
     # class_balanced, null
     strategy: class_balanced
-    batch_size: 100
-    num_workers: 10
+    batch_size: 10
+    num_workers: 0
     num_samples: null
     replacement: true
   # json or txt
@@ -29,7 +34,7 @@ data:
 
 global:
   gpu: null
-  resume: null
+  resume: ./runs/last_checkpoint.txt
   log_dir: ./runs/
   log_file: train.log
   num_epochs: 100

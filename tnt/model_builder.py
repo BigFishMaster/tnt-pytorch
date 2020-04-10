@@ -145,13 +145,27 @@ class ModelBuilder:
         self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
+        # clip gradients
         self.clip_norm = config["optimizer"].get("clip_norm", None)
         if self.clip_norm is not None and self.clip_norm > 0:
             logger.info("gradients will be clipped to clip_norm:{}".format(self.clip_norm))
+        # accumulate steps
         self.accum_steps = config["optimizer"].get("accum_steps", 1)
         self.accum_steps = 1 if self.accum_steps is None else self.accum_steps
         if self.accum_steps is not None and self.accum_steps > 0:
             logger.info("gradients will be accumulated with steps:{}".format(self.accum_steps))
+        # output test result to file
+        out_cfg = config["data"].get("output")
+        self.fout = None
+        if out_cfg is None:
+            self.out_mode = "top5"
+            self.out_file = config["global"]["log_dir"] + "test.output"
+        else:
+            self.out_mode = out_cfg.get("mode", "top5")
+            self.out_file = out_cfg.get("file")
+            if self.out_file is None:
+                self.out_file = config["global"]["log_dir"] + "test.output"
+
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
         self.init_global(config["global"])
@@ -192,6 +206,24 @@ class ModelBuilder:
         self.save_checkpoint_file = os.path.join(config["log_dir"], config["save_checkpoint_file"])
         self.report_interval = config["report_interval"]
 
+    def _out(self, output):
+        with torch.no_grad():
+            topk = int(self.out_mode[3:]) if self.out_mode != "raw" else -1
+            if self.fout is not None and self.fout.closed is False:
+                if topk > 1:
+                    maxk = min(topk, output.shape[1])
+                    _, pred = output.topk(maxk, 1, True, True)
+                else:
+                    pred = output
+                pred = pred.cpu().numpy()
+                num = len(pred)
+                for i in range(num):
+                    out = " ".join([str(_) for _ in pred[i]])
+                    self.fout.write(out+"\n")
+                    self.fout.flush()
+            else:
+                return
+
     def _run_epoch(self, data_iter, mode="test"):
         if mode == "train":
             self.model.train()
@@ -208,7 +240,7 @@ class ModelBuilder:
                 input, target = batch
             else:
                 # TODO: process the output when testing
-                input, target = batch, None
+                input, target = batch[0], None
 
             if self.gpu is not None:
                 input = input.cuda(self.gpu, non_blocking=True)
@@ -237,7 +269,8 @@ class ModelBuilder:
                     report_stats.log(mode, self.writer, learning_rate, current_step)
                     start = time.time()
             else:
-                # TODO: 'test' mode is not implemented. save prediction result ?
+                logger.info("(%s) step %s; batch size: %s" % (mode, step+1, output.shape[0]))
+                self._out(output)
                 pass
         report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
         report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs)
@@ -245,7 +278,9 @@ class ModelBuilder:
 
     def run(self, train_iter=None, valid_iter=None, test_iter=None):
         if test_iter:
+            self.fout = open(self.out_file, "w", encoding="utf8")
             self._run_epoch(test_iter, mode="test")
+            self.fout.close()
             return
 
         if valid_iter and not train_iter:

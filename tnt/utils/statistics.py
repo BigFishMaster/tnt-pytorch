@@ -9,7 +9,8 @@ from collections import Counter
 class Statistics(object):
     def __init__(self, loss=0, n=0, topk=(1,), vals=None):
         self.loss = loss
-        self.n = n
+        # forbidden divided by zero
+        self.n = n or 1e-8
         if vals:
             self.n_correct = Counter({k: v for k, v in zip(topk, vals)})
         else:
