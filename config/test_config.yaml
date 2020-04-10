@@ -50,7 +50,7 @@ model:
   name: resnet18
   # use default pretrained model: "imagenet"
   # or usre-defined model
-  pretrained: imagenet
+  pretrained: null
 
 
 loss:

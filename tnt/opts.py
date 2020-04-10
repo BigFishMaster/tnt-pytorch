@@ -2,13 +2,23 @@
 def basic_opts(parser):
     parser.add_argument("--gpu", default=None, type=int,
                         help="GPU id to use.")
-    parser.add_argument("--num_classes", default=2, type=int,
+    parser.add_argument("--num_classes", default=None, type=int,
                         help="number of classes to classify.")
     parser.add_argument("--image_size", default=None, type=int,
                         help="the input image size: [3, image_size, image_size].")
-    parser.add_argument("--pretrained", default="", type=str,
+    parser.add_argument("--pretrained", default=None, type=str,
                         help="use pre-trained model.")
-    parser.add_argument("--resume", default="", type=str,
+    parser.add_argument("--test", default=None, type=str,
+                        help="test file.")
+    parser.add_argument("--out_file", default=None, type=str,
+                        help="output file for test.")
+    parser.add_argument("--out_mode", default=None, type=str,
+                        help="output mode, e.g.: topk or raw")
+    parser.add_argument("--model_name", default=None, type=str,
+                        help="mode name, e.g.: resnet50")
+    parser.add_argument("--mode", default=None, type=str,
+                        help="set a mode, e.g.: train,val,test")
+    parser.add_argument("--resume", default=None, type=str,
                         help="path to last checkpoint.")
-    parser.add_argument("--num-epochs", default=10, type=int,
+    parser.add_argument("--num_epochs", default=None, type=int,
                         help="number of epochs to train.")

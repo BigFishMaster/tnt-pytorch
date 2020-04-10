@@ -23,6 +23,30 @@ def create_config():
     else:
         yaml_config = yaml.load(open(args.config), Loader=yaml.SafeLoader)
         config.update(yaml_config)
+    # update parameters from args:
+    if config["gpu"] is not None:
+        config["global"]["gpu"] = config["gpu"]
+    if config["num_classes"] is not None:
+        config["data"]["num_classes"] = config["num_classes"]
+    if config["pretrained"] is not None:
+        config["model"]["pretrained"] = config["pretrained"]
+    if config["resume"] is not None:
+        config["global"]["resume"] = config["global"]["resume"]
+    if config["num_epochs"] is not None:
+        config["global"]["num_epochs"] = config["num_epochs"]
+    if config["mode"] is not None:
+        config["data"]["mode"] = config["mode"].split(",")
+    if config["test"] is not None:
+        config["data"]["test"] = config["test"]
+    if config["out_file"] is not None:
+        if config["data"].get("output") is None:
+            config["data"]["output"] = {}
+        config["data"]["output"]["file"] = config["out_file"]
+    if config["out_mode"] is not None:
+        if config["data"].get("output") is None:
+            config["data"]["output"] = {}
+        config["data"]["output"]["mode"] = config["out_mode"]
+    #####################################
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
@@ -31,7 +55,6 @@ def create_config():
         os.makedirs(log_dir)
     config["log_file"] = os.path.join(log_dir, config["global"]["log_file"])
     os.environ["TORCH_HOME"] = config["model"]["TORCH_HOME"]
-    logger.info("create configure successfully.")
     return config
 
 
@@ -59,6 +82,7 @@ def runner(config):
 def main():
     config = create_config()
     init_logger(config["log_file"])
+    logger.info("create configure successfully: {}".format(config))
     runner(config)
 
 
