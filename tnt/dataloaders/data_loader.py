@@ -33,7 +33,10 @@ class GeneralDataLoader(Dataset):
         self = cls(cfg, mode)
         logger.info("===mode-{}===\ncollate_fn: {}\nsampler:{}".format(
             mode, self.collate_fn, self.sampler))
-        data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=(self.sampler is None),
+        is_shuffle = True
+        if mode != "train" or self.sampler is not None:
+            is_shuffle = False
+        data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=is_shuffle,
                                  num_workers=self.num_workers, collate_fn=self.collate_fn,
                                  pin_memory=True, sampler=self.sampler)
         return data_loader
@@ -41,8 +44,11 @@ class GeneralDataLoader(Dataset):
     def __getitem__(self, index):
         data = self.data_list[index].decode()
         # there are two cases:
+        # train or valid:
         # 1. image, label
         # 2. image, [label1, label2]
+        # test:
+        # 1. image
         result = self._field(data)
         return result
 

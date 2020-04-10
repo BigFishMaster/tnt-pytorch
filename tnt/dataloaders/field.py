@@ -56,6 +56,8 @@ class Field:
         if last:
             return [self._fns[-1](fields[-1])]
 
+        # warn: in test mode, only return the image array;
+        #       the label is ommited altough its _fn is initialized.
         data = []
         for i, f in enumerate(fields):
             data.append(self._fns[i](f))
