@@ -6,15 +6,15 @@ data:
   # relative or absolute path to train, valid or test file
   train: null
   valid: null
-  test: "../tests/data/full_set/test.txt"
+  test: "./test.txt"
   # prefix path for each sample
-  data_prefix: ../tests/data/full_set/
+  data_prefix: null
   # sampling strategy
   sampler:
     # class_balanced, null
     strategy: class_balanced
-    batch_size: 3
-    num_workers: 0
+    batch_size: 100
+    num_workers: 10
     num_samples: null
     replacement: true
   # json or txt
