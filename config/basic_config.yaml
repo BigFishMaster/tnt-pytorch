@@ -13,7 +13,7 @@ data:
   sampler:
     # class_balanced, null
     strategy: class_balanced
-    batch_size: 2
+    batch_size: 20
     num_workers: 0
     num_samples: null
     replacement: true
@@ -36,7 +36,7 @@ global:
   save_epoch_steps: 5
   save_model_file: model-{}.pt
   save_checkpoint_file: last_checkpoint.txt
-  report_interval: 2
+  report_interval: 4
 
 model:
   # pretrained model should be placed into "pretrained" folder
@@ -52,8 +52,10 @@ loss:
   name: CrossEntropyLoss
 
 optimizer:
+  # steps to accumulate gradients: num > 0 or null
+  accum_steps: 4
   # SGD, RMSprop
-  name: RMSprop
+  name: SGD
   # null or 5
   clip_norm: null
   lr: 0.01
@@ -66,8 +68,8 @@ metric:
 
 lr_strategy:
   # stepwise, constant
-  name: constant
-  start_lr: 0.001
+  name: stepwise
+  start_lr: 0.01
   step_epochs: 30
   decay_scale: 0.1
 

@@ -147,7 +147,11 @@ class ModelBuilder:
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
         self.clip_norm = config["optimizer"].get("clip_norm", None)
         if self.clip_norm is not None and self.clip_norm > 0:
-            logger.info("gradients will clipped to clip_norm:{}".format(self.clip_norm))
+            logger.info("gradients will be clipped to clip_norm:{}".format(self.clip_norm))
+        self.accum_steps = config["optimizer"].get("accum_steps", 1)
+        self.accum_steps = 1 if self.accum_steps is None else self.accum_steps
+        if self.accum_steps is not None and self.accum_steps > 0:
+            logger.info("gradients will be accumulated with steps:{}".format(self.accum_steps))
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
         self.init_global(config["global"])
@@ -198,6 +202,7 @@ class ModelBuilder:
         report_stats = Statistics()
         learning_rate = -1
         step = -1
+        self.optimizer.zero_grad()
         for step, batch in enumerate(data_iter):
             if mode != "test":
                 input, target = batch
@@ -216,11 +221,12 @@ class ModelBuilder:
 
                 if mode == "train":
                     self.train_steps += 1
-                    self.optimizer.zero_grad()
                     loss.backward()
-                    if self.clip_norm is not None and self.clip_norm > 0:
-                        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_norm)
-                    self.optimizer.step()
+                    if (step+1) % self.accum_steps == 0:
+                        if self.clip_norm is not None and self.clip_norm > 0:
+                            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_norm)
+                        self.optimizer.step()
+                        self.optimizer.zero_grad()
 
                 batch_stats = self.metric(output=output, target=target, loss=loss.item())
                 report_stats.update(batch_stats)

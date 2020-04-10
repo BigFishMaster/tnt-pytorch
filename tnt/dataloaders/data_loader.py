@@ -31,10 +31,8 @@ class GeneralDataLoader(Dataset):
         if (mode not in cfg) or (not cfg[mode]):
             return None
         self = cls(cfg, mode)
-        if not hasattr(self, "collate_fn"):
-            self.collate_fn = default_collate
-        else:
-            logger.info("collate_fn is initalized in create_smapler.")
+        logger.info("===mode-{}===\ncollate_fn: {}\nsampler:{}".format(
+            mode, self.collate_fn, self.sampler))
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=(self.sampler is None),
                                  num_workers=self.num_workers, collate_fn=self.collate_fn,
                                  pin_memory=True, sampler=self.sampler)
@@ -121,5 +119,6 @@ class GeneralDataLoader(Dataset):
             del sorted_weights
             del sample_weights
             del sample_labels
-
             return sampler
+        else:
+            return None
