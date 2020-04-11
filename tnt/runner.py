@@ -34,6 +34,8 @@ def create_config():
         config["global"]["resume"] = config["resume"]
     if config["num_epochs"] is not None:
         config["global"]["num_epochs"] = config["num_epochs"]
+    if config["batch_size"] is not None:
+        config["data"]["sampler"]["batch_size"] = config["batch_size"]
     if config["mode"] is not None:
         config["data"]["mode"] = config["mode"].split(",")
     if config["test"] is not None:

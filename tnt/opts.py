@@ -6,6 +6,8 @@ def basic_opts(parser):
                         help="number of classes to classify.")
     parser.add_argument("--image_size", default=None, type=int,
                         help="the input image size: [3, image_size, image_size].")
+    parser.add_argument("--batch_size", default=None, type=int,
+                        help="the batch size.")
     parser.add_argument("--pretrained", default=None, type=str,
                         help="use pre-trained model.")
     parser.add_argument("--test", default=None, type=str,
