@@ -31,7 +31,7 @@ def create_config():
     if config["pretrained"] is not None:
         config["model"]["pretrained"] = config["pretrained"]
     if config["resume"] is not None:
-        config["global"]["resume"] = config["global"]["resume"]
+        config["global"]["resume"] = config["resume"]
     if config["num_epochs"] is not None:
         config["global"]["num_epochs"] = config["num_epochs"]
     if config["mode"] is not None:
