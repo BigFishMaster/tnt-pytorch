@@ -29,6 +29,7 @@ class ModelImpl:
             # TODO: if not pretrained, the below members will not be initialized:
             # input_space, input_size, input_range, mean, std
             model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
+            logger.info("model pretrained:", pretrained)
         else:
             logger.exception("'{}' is not available.".format(model_name_or_path))
             sys.exit()
@@ -201,6 +202,7 @@ class ModelBuilder:
             self.best_epoch = checkpoint.get("best_epoch", self.best_epoch)
             self.model.load_state_dict(checkpoint["state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
+            logger.info("model resume:", self.resume)
 
         if self.weight:
             checkpoint = load_checkpoint(self.weight, self.gpu)
@@ -216,6 +218,7 @@ class ModelBuilder:
                     continue
                 new_state_dict[key] = state_dict[key]
             self.model.load_state_dict(new_state_dict, strict=False)
+            logger.info("model weight:", self.weight)
 
     def init_global(self, config):
         self.resume = config["resume"]
