@@ -29,7 +29,7 @@ class ModelImpl:
             # TODO: if not pretrained, the below members will not be initialized:
             # input_space, input_size, input_range, mean, std
             model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
-            logger.info("model pretrained:", pretrained)
+            logger.info("model pretrained: %s", pretrained)
         else:
             logger.exception("'{}' is not available.".format(model_name_or_path))
             sys.exit()
@@ -202,7 +202,7 @@ class ModelBuilder:
             self.best_epoch = checkpoint.get("best_epoch", self.best_epoch)
             self.model.load_state_dict(checkpoint["state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
-            logger.info("model resume:", self.resume)
+            logger.info("model resume: %s", self.resume)
 
         if self.weight:
             checkpoint = load_checkpoint(self.weight, self.gpu)
@@ -210,6 +210,8 @@ class ModelBuilder:
                 raise ValueError("weight can not be loaded from: {}".format(self.weight))
             state_dict = checkpoint["state_dict"]
             last_layer_name = self.model.last_layer_name
+            if list(state_dict.keys())[0].startswith("module"):
+                last_layer_name = "module." + last_layer_name
             ignore_keys = filter(lambda x:x.startswith(last_layer_name + "."), state_dict.keys())
             ignore_keys = list(ignore_keys)
             new_state_dict = OrderedDict()
@@ -218,7 +220,7 @@ class ModelBuilder:
                     continue
                 new_state_dict[key] = state_dict[key]
             self.model.load_state_dict(new_state_dict, strict=False)
-            logger.info("model weight:", self.weight)
+            logger.info("model weight: %s", self.weight)
 
     def init_global(self, config):
         self.resume = config["resume"]
