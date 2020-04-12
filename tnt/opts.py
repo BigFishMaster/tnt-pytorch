@@ -22,5 +22,7 @@ def basic_opts(parser):
                         help="set a mode, e.g.: train,val,test")
     parser.add_argument("--resume", default=None, type=str,
                         help="path to last checkpoint.")
+    parser.add_argument("--weight", default=None, type=str,
+                        help="model weight to load.")
     parser.add_argument("--num_epochs", default=None, type=int,
                         help="number of epochs to train.")

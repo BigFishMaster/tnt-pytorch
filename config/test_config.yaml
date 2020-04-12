@@ -1,7 +1,7 @@
 data:
   # mode: has 4 candidates:
   # [train, valid] or [train] or [valid] or [test]
-  num_classes: 2
+  num_classes: 20
   mode: [test]
   # relative or absolute path to train, valid or test file
   train: null
@@ -34,7 +34,8 @@ data:
 
 global:
   gpu: null
-  resume: ./runs/last_checkpoint.txt
+  resume: null
+  weight: ./runs/model-1.pt
   log_dir: ./runs/
   log_file: train.log
   num_epochs: 100

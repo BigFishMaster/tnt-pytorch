@@ -2,6 +2,7 @@ import time
 import sys
 import os
 import torch
+from collections import OrderedDict
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
 import tnt.losses as losses
@@ -41,19 +42,23 @@ class ModelImpl:
         # url: https://pytorch.org/docs/master/notes/autograd.html
 
         # for efficientnet models:
+        last_layer_name = None
         if hasattr(model, "classifier"):
+            last_layer_name = "classifier"
             in_features = model.classifier.in_features
             out_features = model.classifier.out_features
             if out_features != num_classes:
                 model.classifier = nn.Linear(in_features, num_classes)
         # for torchvision models
         elif hasattr(model, "last_linear"):
+            last_layer_name = "last_linear"
             in_features = model.last_linear.in_features
             out_features = model.last_linear.out_features
             if out_features != num_classes:
                 model.last_linear = nn.Linear(in_features, num_classes)
         # for billionscale models
         else:  #  model.fc
+            last_layer_name = "fc"
             in_features = model.fc.in_features
             out_features = model.fc.out_features
             if out_features != num_classes:
@@ -67,6 +72,7 @@ class ModelImpl:
                 model = torch.nn.DataParallel(model).cuda()
 
         self.model = model
+        self.model.last_layer_name = last_layer_name
         self.gpu = gpu
 
     @classmethod
@@ -196,8 +202,24 @@ class ModelBuilder:
             self.model.load_state_dict(checkpoint["state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
 
+        if self.weight:
+            checkpoint = load_checkpoint(self.weight, self.gpu)
+            if checkpoint is None:
+                raise ValueError("weight can not be loaded from: {}".format(self.weight))
+            state_dict = checkpoint["state_dict"]
+            last_layer_name = self.model.last_layer_name
+            ignore_keys = filter(lambda x:x.startswith(last_layer_name + "."), state_dict.keys())
+            ignore_keys = list(ignore_keys)
+            new_state_dict = OrderedDict()
+            for key in state_dict.keys():
+                if key in ignore_keys:
+                    continue
+                new_state_dict[key] = state_dict[key]
+            self.model.load_state_dict(new_state_dict, strict=False)
+
     def init_global(self, config):
         self.resume = config["resume"]
+        self.weight = config.get("weight", None)
         self.gpu = config["gpu"]
         self.writer = SummaryWriter(config["log_dir"])
         self.num_epochs = config["num_epochs"]

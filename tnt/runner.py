@@ -32,6 +32,8 @@ def create_config():
         config["model"]["pretrained"] = config["pretrained"]
     if config["resume"] is not None:
         config["global"]["resume"] = config["resume"]
+    if config["weight"] is not None:
+        config["global"]["weight"] = config["weight"]
     if config["num_epochs"] is not None:
         config["global"]["num_epochs"] = config["num_epochs"]
     if config["batch_size"] is not None:

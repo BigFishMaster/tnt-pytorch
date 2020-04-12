@@ -49,11 +49,10 @@ model_names = [
 
 def _resnext(url, block, layers, pretrained, progress, **kwargs):
     # make pretrained compatible although it is not used in resnext.
-    if pretrained == "imagenet":
-        pretrained = True
     model = ResNet(block, layers, **kwargs)
-    state_dict = load_state_dict_from_url(url, progress=progress)
-    model.load_state_dict(state_dict)
+    if pretrained == "imagenet" or pretrained is True:
+        state_dict = load_state_dict_from_url(url, progress=progress)
+        model.load_state_dict(state_dict)
     model.input_space = input_space
     model.input_range = input_range
     model.input_size = input_sizes
@@ -71,8 +70,9 @@ def _resnet(url, depth, pretrained, progress, **kwargs):
         model = models.resnet18(pretrained=pretrained, **kwargs)
     else:
         print('ERROR: only ResNet-18 and ResNet-50 models are available.')
-    state_dict = load_state_dict_from_url(url, progress=progress)
-    model.load_state_dict(state_dict)
+    if pretrained == "imagenet" or pretrained is True:
+        state_dict = load_state_dict_from_url(url, progress=progress)
+        model.load_state_dict(state_dict)
     model.input_space = input_space
     model.input_range = input_range
     model.input_size = input_sizes

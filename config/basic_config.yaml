@@ -30,6 +30,7 @@ data:
 global:
   gpu: null
   resume: null
+  weight: ./runs/model-1.pt
   log_dir: ./runs/
   log_file: train.log
   num_epochs: 100
