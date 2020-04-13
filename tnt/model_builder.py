@@ -185,6 +185,11 @@ class ModelBuilder:
         if config["image_size"] and hasattr(config["data"]["opts"], "input_size"):
             config["data"]["opts"].input_size = [3, config["image_size"], config["image_size"]]
 
+        # multi-crops when testing.
+        self.is_multicrop = config["five_crop"] or config["ten_crop"]
+        config["data"]["opts"].five_crop = config["five_crop"]
+        config["data"]["opts"].ten_crop = config["ten_crop"]
+
     def init_state(self):
         self.min_valid_loss = 1.0e+10
         self.train_steps = 0
@@ -271,7 +276,12 @@ class ModelBuilder:
 
             if self.gpu is not None:
                 input = input.cuda(self.gpu, non_blocking=True)
-            output = self.model(input)
+            if self.is_multicrop:
+                bs, ncrops, c, h, w = input.size()
+                output = self.model(input.view(-1, c, h, w))
+                output = output.view(bs, ncrops, -1).mean(1)
+            else:
+                output = self.model(input)
 
             if mode != "test":
                 if torch.cuda.is_available():

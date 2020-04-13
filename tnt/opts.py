@@ -24,5 +24,9 @@ def basic_opts(parser):
                         help="path to last checkpoint.")
     parser.add_argument("--weight", default=None, type=str,
                         help="model weight to load.")
+    parser.add_argument("--five_crop", default=False, action="store_true",
+                        help="five crops when testing.")
+    parser.add_argument("--ten_crop", default=False, action="store_true",
+                        help="ten crops when testing.")
     parser.add_argument("--num_epochs", default=None, type=int,
                         help="number of epochs to train.")

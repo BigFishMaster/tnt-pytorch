@@ -1,6 +1,7 @@
 import math
 from munch import munchify
 from torchvision import transforms
+import torch
 
 
 class ToSpaceBGR(object):
@@ -40,30 +41,63 @@ class TransformImage(object):
         self.input_range = opts.input_range
         self.mean = opts.mean
         self.std = opts.std
+        self.five_crop = opts.five_crop
+        self.ten_crop = opts.ten_crop
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = scale
+        self.preserve_aspect_ratio = preserve_aspect_ratio
         self.random_crop = random_crop
         self.random_hflip = random_hflip
         self.random_vflip = random_vflip
 
+        if self.five_crop or self.ten_crop:
+            self._init_multi_crop()
+        else:
+            self._init_single_crop()
+
+    def _init_multi_crop(self):
         tfs = []
-        if preserve_aspect_ratio:
+        if self.preserve_aspect_ratio:
+            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
+        else:
+            height = int(self.input_size[1] / self.scale)
+            width = int(self.input_size[2] / self.scale)
+            tfs.append(transforms.Resize((height, width)))
+        if self.ten_crop is True:
+            tfs.append(transforms.TenCrop(max(self.input_size)))
+        else:
+            tfs.append(transforms.FiveCrop(max(self.input_size)))
+        local_tfs = []
+        local_tfs.append(transforms.ToTensor())
+        local_tfs.append(ToSpaceBGR(self.input_space=='BGR'))
+        local_tfs.append(ToRange255(max(self.input_range)==255))
+        local_tfs.append(transforms.Normalize(mean=self.mean, std=self.std))
+        local_tfs = transforms.Compose(local_tfs)
+
+        tfs.append(transforms.Lambda(lambda crops: torch.stack(
+            [local_tfs(crop) for crop in crops])))
+
+        self.tf = transforms.Compose(tfs)
+
+    def _init_single_crop(self):
+        tfs = []
+        if self.preserve_aspect_ratio:
             tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
         else:
             height = int(self.input_size[1] / self.scale)
             width = int(self.input_size[2] / self.scale)
             tfs.append(transforms.Resize((height, width)))
 
-        if random_crop:
+        if self.random_crop:
             tfs.append(transforms.RandomCrop(max(self.input_size)))
         else:
             tfs.append(transforms.CenterCrop(max(self.input_size)))
 
-        if random_hflip:
+        if self.random_hflip:
             tfs.append(transforms.RandomHorizontalFlip())
 
-        if random_vflip:
+        if self.random_vflip:
             tfs.append(transforms.RandomVerticalFlip())
 
         tfs.append(transforms.ToTensor())
