@@ -189,6 +189,8 @@ class ModelBuilder:
         self.is_multicrop = config["five_crop"] or config["ten_crop"]
         config["data"]["opts"].five_crop = config["five_crop"]
         config["data"]["opts"].ten_crop = config["ten_crop"]
+        # image transforms
+        config["data"]["opts"].transform_type = config["transform_type"]
 
     def init_state(self):
         self.min_valid_loss = 1.0e+10

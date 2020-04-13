@@ -1,7 +1,6 @@
-import json
 from functools import partial
-from tnt.transform_image import TransformImage
-from tnt.utils.logging import logger
+from tnt.data.transform_image import TransformImage
+from tnt.data.transforms_factory import transforms_imagenet_train, transforms_imagenet_eval
 from tnt.utils.io import *
 
 
@@ -30,11 +29,23 @@ class Field:
             raise NotImplementedError("use {} for field_fn failed.".format(self.format))
 
         # image transforms
+        is_auto_augment = opts.transform_type in ["v0", "v0r", "original", "originalr"]
         if mode == "train":
-            self.transforms = TransformImage(opts, random_crop=True, random_hflip=True)
+            if is_auto_augment:
+                self.transforms = transforms_imagenet_train(
+                    img_size=(opts.input_size[1], opts.input_size[2]),
+                    auto_augment=opts.transform_type,
+                )
+            else:
+                self.transforms = TransformImage(opts, random_crop=True, random_hflip=True)
         else:
             # valid and test
-            self.transforms = TransformImage(opts)
+            if is_auto_augment:
+                self.transforms = transforms_imagenet_eval(
+                    img_size=(opts.input_size[1], opts.input_size[2])
+                )
+            else:
+                self.transforms = TransformImage(opts)
 
         logger.info("In mode %s, image transforms are: %s", mode, self.transforms)
 

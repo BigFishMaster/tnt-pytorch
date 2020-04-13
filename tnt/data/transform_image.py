@@ -2,6 +2,19 @@ import math
 from munch import munchify
 from torchvision import transforms
 import torch
+from PIL import Image
+
+
+def _pil_interp(method):
+    if method == 'bicubic':
+        return Image.BICUBIC
+    elif method == 'lanczos':
+        return Image.LANCZOS
+    elif method == 'hamming':
+        return Image.HAMMING
+    else:
+        # default bilinear, do we want to allow nearest?
+        return Image.BILINEAR
 
 
 class ToSpaceBGR(object):
@@ -43,6 +56,7 @@ class TransformImage(object):
         self.std = opts.std
         self.five_crop = opts.five_crop
         self.ten_crop = opts.ten_crop
+        self.is_train = random_crop or random_hflip or random_vflip
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = scale
@@ -51,19 +65,26 @@ class TransformImage(object):
         self.random_hflip = random_hflip
         self.random_vflip = random_vflip
 
+        if self.is_train and (self.five_crop or self.ten_crop):
+            raise ValueError("Can not use five or ten crops when training.")
+
         if self.five_crop or self.ten_crop:
+            # only used when testing
             self._init_multi_crop()
         else:
+            # can use it when training or testing.
             self._init_single_crop()
 
     def _init_multi_crop(self):
         tfs = []
         if self.preserve_aspect_ratio:
-            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
+            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale)),
+                                         interpolation=_pil_interp("bilinear")))
         else:
             height = int(self.input_size[1] / self.scale)
             width = int(self.input_size[2] / self.scale)
-            tfs.append(transforms.Resize((height, width)))
+            tfs.append(transforms.Resize((height, width),
+                                         interpolation=_pil_interp("bilinear")))
         if self.ten_crop is True:
             tfs.append(transforms.TenCrop(max(self.input_size)))
         else:
@@ -83,11 +104,13 @@ class TransformImage(object):
     def _init_single_crop(self):
         tfs = []
         if self.preserve_aspect_ratio:
-            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale))))
+            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale)),
+                                         interpolation=_pil_interp("bilinear")))
         else:
             height = int(self.input_size[1] / self.scale)
             width = int(self.input_size[2] / self.scale)
-            tfs.append(transforms.Resize((height, width)))
+            tfs.append(transforms.Resize((height, width),
+                                         interpolation=_pil_interp("bilinear")))
 
         if self.random_crop:
             tfs.append(transforms.RandomCrop(max(self.input_size)))
