@@ -24,6 +24,8 @@ def basic_opts(parser):
                         help="path to last checkpoint.")
     parser.add_argument("--weight", default=None, type=str,
                         help="model weight to load.")
+    parser.add_argument("--fix_bn", default=False, action="store_true",
+                        help="fix batchnorm layer.")
     parser.add_argument("--transform_type", default=None, type=str,
                         help="image transform type: raw, original, originalr, v0, v0r or None.")
     parser.add_argument("--five_crop", default=False, action="store_true",

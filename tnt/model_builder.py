@@ -156,6 +156,10 @@ class ModelBuilder:
         self.clip_norm = config["optimizer"].get("clip_norm", None)
         if self.clip_norm is not None and self.clip_norm > 0:
             logger.info("gradients will be clipped to clip_norm:{}".format(self.clip_norm))
+        # fix BatchNorm
+        # it can be used when the performance is affected by batch size.
+        self.fix_bn = config["optimizer"].get("fix_bn", False)
+        logger.info("fix batchnorm:{}".format(self.fix_bn))
         # accumulate steps
         self.accum_steps = config["optimizer"].get("accum_steps", 1)
         self.accum_steps = 1 if self.accum_steps is None else self.accum_steps
@@ -261,6 +265,12 @@ class ModelBuilder:
     def _run_epoch(self, data_iter, mode="test"):
         if mode == "train":
             self.model.train()
+            if self.fix_bn:
+                def set_bn_eval(m):
+                    classname = m.__class__.__name__
+                    if classname.find('BatchNorm') != -1:
+                        m.eval()
+                self.model.apply(set_bn_eval)
         else:
             self.model.eval()
         start = time.time()
