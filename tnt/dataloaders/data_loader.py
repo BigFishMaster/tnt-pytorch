@@ -81,6 +81,9 @@ class GeneralDataLoader(Dataset):
             class_weights.update(sample_labels)
             if len(class_weights) != self.num_classes:
                 logger.warning("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+                for cls in range(self.num_classes):
+                    if cls not in class_weights:
+                        class_weights.update({cls:0})
 
             sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
             weights = [s[1] for s in sorted_weights]
@@ -107,6 +110,9 @@ class GeneralDataLoader(Dataset):
 
             if len(class_weights) != self.num_classes:
                 logger.warning("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+                for cls in range(self.num_classes):
+                    if cls not in class_weights:
+                        class_weights.update({cls:0})
 
             sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
             weights = [s[1] for s in sorted_weights]
