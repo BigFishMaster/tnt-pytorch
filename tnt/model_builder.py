@@ -159,6 +159,8 @@ class ModelBuilder:
         # fix BatchNorm
         # it can be used when the performance is affected by batch size.
         self.fix_bn = config["optimizer"].get("fix_bn", False)
+        # tensorboard logging
+        self.tb_log = config["tb_log"]
         logger.info("fix batchnorm:{}".format(self.fix_bn))
         # accumulate steps
         self.accum_steps = config["optimizer"].get("accum_steps", 1)
@@ -315,14 +317,16 @@ class ModelBuilder:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)
                     current_step = self.train_steps
                     report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
-                    report_stats.log(mode, self.writer, learning_rate, current_step)
+                    if self.tb_log:
+                        report_stats.log(mode, self.writer, learning_rate, current_step)
                     start = time.time()
             else:
                 logger.info("(%s) step %s; batch size: %s" % (mode, step+1, output.shape[0]))
                 self._out(output)
                 pass
         report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
-        report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs)
+        if self.tb_log:
+            report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs)
         return report_stats.avgloss()
 
     def run(self, train_iter=None, valid_iter=None, test_iter=None):
