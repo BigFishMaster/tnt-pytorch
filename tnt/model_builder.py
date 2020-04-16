@@ -239,7 +239,7 @@ class ModelBuilder:
         self.resume = config["resume"]
         self.weight = config.get("weight", None)
         self.gpu = config["gpu"]
-        self.writer = SummaryWriter(config["log_dir"])
+        self.writer = SummaryWriter(config["log_dir"]) if self.tb_log else None
         self.num_epochs = config["num_epochs"]
         self.save_epoch_steps = config["save_epoch_steps"]
         self.save_model_file = os.path.join(config["log_dir"], config["save_model_file"])
@@ -365,5 +365,6 @@ class ModelBuilder:
                         save_checkpoint_file=self.save_checkpoint_file
                     )
 
-        self.writer.close()
+        if self.tb_log:
+            self.writer.close()
 
