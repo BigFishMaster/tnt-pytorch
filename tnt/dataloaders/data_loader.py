@@ -80,7 +80,7 @@ class GeneralDataLoader(Dataset):
             class_weights = Counter()
             class_weights.update(sample_labels)
             if len(class_weights) != self.num_classes:
-                raise ValueError("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+                logger.warning("{} classes have no samples.".format(self.num_classes-len(class_weights)))
 
             sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
             weights = [s[1] for s in sorted_weights]
@@ -106,7 +106,7 @@ class GeneralDataLoader(Dataset):
             logger.info("creating sampler totally: %d", len(self.data_list))
 
             if len(class_weights) != self.num_classes:
-                raise ValueError("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+                logger.warning("{} classes have no samples.".format(self.num_classes-len(class_weights)))
 
             sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
             weights = [s[1] for s in sorted_weights]
