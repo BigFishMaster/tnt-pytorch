@@ -30,7 +30,7 @@ data:
 global:
   gpu: null
   resume: null
-  weight: ./runs/model-1.pt
+  weight: null
   log_dir: ./runs/
   log_file: train.log
   num_epochs: 100
@@ -71,7 +71,7 @@ lr_strategy:
   # stepwise
   #name: stepwise
   #start_lr: 0.01
-  #step_epochs: 30
+  #step_epochs: 2
   #decay_scale: 0.1
   # cosine
   name: cosine
