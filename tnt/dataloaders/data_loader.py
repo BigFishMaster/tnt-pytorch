@@ -38,7 +38,7 @@ class GeneralDataLoader(Dataset):
             is_shuffle = False
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=is_shuffle,
                                  num_workers=self.num_workers, collate_fn=self.collate_fn,
-                                 pin_memory=True, sampler=self.sampler)
+                                 pin_memory=True, sampler=self.sampler, drop_last=(mode == "train"))
         return data_loader
 
     def __getitem__(self, index):

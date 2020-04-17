@@ -55,6 +55,7 @@ def create_config():
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
+    config["lr_strategy"]["num_epochs"] = config["global"]["num_epochs"]
     log_dir = config["global"]["log_dir"]
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)

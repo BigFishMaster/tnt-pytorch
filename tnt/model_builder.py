@@ -282,6 +282,7 @@ class ModelBuilder:
         step = -1
         self.optimizer.zero_grad()
         for step, batch in enumerate(data_iter):
+            self.lr_strategy.set_lr(optimizer=self.optimizer, epoch=self.train_epochs, step=self.train_steps)
             if mode != "test":
                 input, target = batch
             else:
@@ -315,18 +316,17 @@ class ModelBuilder:
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)
-                    current_step = self.train_steps
-                    report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
+                    report_stats.print(mode, step+1, self.train_epochs+1, learning_rate, start)
                     if self.tb_log:
-                        report_stats.log(mode, self.writer, learning_rate, current_step)
+                        report_stats.log(mode, self.writer, learning_rate, self.train_steps)
                     start = time.time()
             else:
                 logger.info("(%s) step %s; batch size: %s" % (mode, step+1, output.shape[0]))
                 self._out(output)
                 pass
-        report_stats.print(mode, step+1, self.train_epochs, learning_rate, start)
+        report_stats.print(mode, step+1, self.train_epochs+1, learning_rate, start)
         if self.tb_log:
-            report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs)
+            report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs+1)
         return report_stats.avgloss()
 
     def run(self, train_iter=None, valid_iter=None, test_iter=None):
@@ -341,9 +341,6 @@ class ModelBuilder:
             return
 
         for epoch in range(self.start_epoch, self.num_epochs):
-            # TODO: update lr for each step is not implemented.
-            self.lr_strategy.set_lr(optimizer=self.optimizer, epoch=epoch, step=self.train_steps)
-            self.train_epochs += 1
             self._run_epoch(train_iter, mode="train")
             if valid_iter:
                 with torch.no_grad():
@@ -364,6 +361,7 @@ class ModelBuilder:
                         filename=self.save_model_file.format(epoch+1),
                         save_checkpoint_file=self.save_checkpoint_file
                     )
+            self.train_epochs += 1
 
         if self.tb_log:
             self.writer.close()

@@ -5,7 +5,7 @@ data:
   mode: [train, valid]
   # relative or absolute path to train, valid or test file
   train: ../tests/data/full_set/valid.txt
-  valid: ../tests/data/full_set/valid.txt
+  valid: ../tests/data/full_set/mini_valid.txt
   test: null
   # prefix path for each sample
   data_prefix: ../tests/data/full_set/
@@ -13,9 +13,9 @@ data:
   sampler:
     # class_balanced, null
     strategy: class_balanced
-    batch_size: 20
+    batch_size: 2
     num_workers: 0
-    num_samples: null
+    num_samples: 20
     replacement: true
   # json or txt
   format: txt
@@ -68,9 +68,17 @@ metric:
   acc_topk: [1]
 
 lr_strategy:
-  # stepwise, constant
-  name: stepwise
-  start_lr: 0.01
-  step_epochs: 30
-  decay_scale: 0.1
+  # stepwise
+  #name: stepwise
+  #start_lr: 0.01
+  #step_epochs: 30
+  #decay_scale: 0.1
+  # cosine
+  name: cosine
+  warmup_epochs: 5
+  warmup_lr: [0.01, 0.01]
+  lr_range: [0.01, 0.00001]
+  # num_epochs is copied from global section
+  #num_epochs: 100
+  steps_each_epoch: 10
 
