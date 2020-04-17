@@ -80,5 +80,6 @@ lr_strategy:
   lr_range: [0.01, 0.00001]
   # num_epochs is copied from global section
   #num_epochs: 100
+  # it will be divided by accum_steps automatically.
   steps_each_epoch: 10
 

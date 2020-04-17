@@ -55,7 +55,12 @@ def create_config():
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
-    config["lr_strategy"]["num_epochs"] = config["global"]["num_epochs"]
+    num_epochs = config["global"]["num_epochs"]
+    config["lr_strategy"]["num_epochs"] = num_epochs
+    # accumlation steps will affect the steps number of each epoch.
+    accum_steps = config["optimizer"].get("accum_steps", 1)
+    accum_steps = 1 if accum_steps is None else accum_steps
+    config["lr_strategy"]["steps_each_epoch"] //= accum_steps
     log_dir = config["global"]["log_dir"]
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)

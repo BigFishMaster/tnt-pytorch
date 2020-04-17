@@ -181,6 +181,7 @@ class ModelBuilder:
 
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
+        self.steps_each_epoch = config["lr_strategy"]["steps_each_epoch"]
         self.init_global(config["global"])
         self.init_state()
 
@@ -212,6 +213,7 @@ class ModelBuilder:
             self.min_valid_loss = checkpoint.get("min_valid_loss", self.min_valid_loss)
             self.start_epoch = checkpoint.get("epoch", self.start_epoch)
             self.train_epochs = self.start_epoch
+            self.train_steps = self.train_epochs * self.steps_each_epoch
             self.best_epoch = checkpoint.get("best_epoch", self.best_epoch)
             self.model.load_state_dict(checkpoint["state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
@@ -282,7 +284,6 @@ class ModelBuilder:
         step = -1
         self.optimizer.zero_grad()
         for step, batch in enumerate(data_iter):
-            self.lr_strategy.set_lr(optimizer=self.optimizer, epoch=self.train_epochs, step=self.train_steps)
             if mode != "test":
                 input, target = batch
             else:
@@ -304,9 +305,11 @@ class ModelBuilder:
                 loss = self.loss(output, target)
 
                 if mode == "train":
-                    self.train_steps += 1
                     loss.backward()
                     if (step+1) % self.accum_steps == 0:
+                        self.lr_strategy.set_lr(optimizer=self.optimizer,
+                                                epoch=self.train_epochs, step=self.train_steps)
+                        self.train_steps += 1
                         if self.clip_norm is not None and self.clip_norm > 0:
                             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_norm)
                         self.optimizer.step()
