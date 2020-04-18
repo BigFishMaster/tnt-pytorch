@@ -60,7 +60,8 @@ def create_config():
     # accumlation steps will affect the steps number of each epoch.
     accum_steps = config["optimizer"].get("accum_steps", 1)
     accum_steps = 1 if accum_steps is None else accum_steps
-    config["lr_strategy"]["steps_each_epoch"] //= accum_steps
+    steps_each_epoch = config["lr_strategy"].get("steps_each_epoch", 0)
+    config["lr_strategy"]["steps_each_epoch"] = steps_each_epoch // accum_steps
     log_dir = config["global"]["log_dir"]
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
