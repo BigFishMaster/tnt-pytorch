@@ -160,6 +160,7 @@ class ModelBuilder:
                 if classname.find('BatchNorm') != -1:
                     m.momentum = bn_momentum
             self.model.apply(set_bn_momentum)
+            logger.info("BN layers use bn_momentum:{}".format(bn_momentum))
         # clip gradients
         self.clip_norm = config["optimizer"].get("clip_norm", None)
         if self.clip_norm is not None and self.clip_norm > 0:
