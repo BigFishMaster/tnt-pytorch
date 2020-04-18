@@ -54,6 +54,7 @@ loss:
 
 optimizer:
   # steps to accumulate gradients: num > 0 or null
+  bn_momentum: 0.05
   accum_steps: 1
   # SGD, RMSprop
   name: SGD

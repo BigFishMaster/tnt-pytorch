@@ -152,6 +152,14 @@ class ModelBuilder:
         self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
+        # set bn momentum: useful when accumulating steps
+        bn_momentum = config["optimizer"].get("bn_momentum", None)
+        if bn_momentum is not None and 0 <= bn_momentum <= 1:
+            def set_bn_momentum(m):
+                classname = m.__class__.__name__
+                if classname.find('BatchNorm') != -1:
+                    m.momentum = bn_momentum
+            self.model.apply(set_bn_momentum)
         # clip gradients
         self.clip_norm = config["optimizer"].get("clip_norm", None)
         if self.clip_norm is not None and self.clip_norm > 0:
