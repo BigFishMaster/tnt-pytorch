@@ -152,6 +152,8 @@ class ModelBuilder:
         self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
+        # keep weights of last layer
+        self.keep_last_layer = config["keep_last_layer"]
         # set bn momentum: useful when accumulating steps
         bn_momentum = config["optimizer"].get("bn_momentum", None)
         if bn_momentum is not None and 0 <= bn_momentum <= 1:
@@ -233,17 +235,21 @@ class ModelBuilder:
             if checkpoint is None:
                 raise ValueError("weight can not be loaded from: {}".format(self.weight))
             state_dict = checkpoint["state_dict"]
-            last_layer_name = self.model.last_layer_name
-            if list(state_dict.keys())[0].startswith("module"):
-                last_layer_name = "module." + last_layer_name
-            ignore_keys = filter(lambda x:x.startswith(last_layer_name + "."), state_dict.keys())
-            ignore_keys = list(ignore_keys)
-            new_state_dict = OrderedDict()
-            for key in state_dict.keys():
-                if key in ignore_keys:
-                    continue
-                new_state_dict[key] = state_dict[key]
-            self.model.load_state_dict(new_state_dict, strict=False)
+            logger.info("keep the weights of last layer:{}".format(self.keep_last_layer))
+            if self.keep_last_layer:
+                self.model.load_state_dict(state_dict)
+            else:
+                last_layer_name = self.model.last_layer_name
+                if list(state_dict.keys())[0].startswith("module"):
+                    last_layer_name = "module." + last_layer_name
+                ignore_keys = filter(lambda x:x.startswith(last_layer_name + "."), state_dict.keys())
+                ignore_keys = list(ignore_keys)
+                new_state_dict = OrderedDict()
+                for key in state_dict.keys():
+                    if key in ignore_keys:
+                        continue
+                    new_state_dict[key] = state_dict[key]
+                self.model.load_state_dict(new_state_dict, strict=False)
             logger.info("model weight: %s", self.weight)
 
     def init_global(self, config):

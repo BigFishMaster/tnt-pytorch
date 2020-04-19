@@ -26,6 +26,8 @@ def basic_opts(parser):
                         help="model weight to load.")
     parser.add_argument("--fix_bn", default=False, action="store_true",
                         help="fix batchnorm layer.")
+    parser.add_argument("--keep_last_layer", default=False, action="store_true",
+                        help="keep weights of last layer when weighting model.")
     parser.add_argument("--tb_log", default=1, type=int,
                         help="tensorboard logging.")
     parser.add_argument("--transform_type", default=None, type=str,
