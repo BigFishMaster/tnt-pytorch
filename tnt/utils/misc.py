@@ -32,6 +32,8 @@ def calc_topk_2d(output, target, topk=(1,)):
 
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
+        if isinstance(target, list):
+            target = target[-1]
         correct = pred.eq(target.view(1, -1).expand_as(pred))
 
         res = []

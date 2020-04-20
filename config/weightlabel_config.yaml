@@ -1,0 +1,86 @@
+data:
+  # mode: has 4 candidates:
+  # [train, valid] or [train] or [valid] or [test]
+  num_classes: 2
+  mode: [train, valid]
+  # relative or absolute path to train, valid or test file
+  train: ../tests/data/full_set/train_score.txt
+  valid: ../tests/data/full_set/valid_score.txt
+  test: null
+  # prefix path for each sample
+  data_prefix: ../tests/data/full_set/
+  # sampling strategy
+  sampler:
+    # class_balanced, null
+    strategy: class_balanced
+    batch_size: 2
+    num_workers: 0
+    num_samples: 20
+    replacement: true
+  # json or txt
+  format: txt
+  # data modal: image, video, vector, text, label
+  modals: [image, score, label]
+  # data types:
+  #  image: path, npy
+  #  text: raw, token, file
+  #  label: int
+  types: [path, float, int] # e.g., image: path, npy, text: raw, token, file
+
+global:
+  gpu: null
+  resume: null
+  weight: null
+  log_dir: ./runs/
+  log_file: train.log
+  num_epochs: 100
+  save_epoch_steps: 1
+  save_model_file: model-{}.pt
+  save_checkpoint_file: last_checkpoint.txt
+  report_interval: 4
+
+model:
+  # pretrained model should be placed into "pretrained" folder
+  TORCH_HOME: ../pretrained/
+  # network+classes+dataset (with pretraining), or network (w/o pretraining)
+  name: resnet18
+  # use default pretrained model: "imagenet"
+  # or usre-defined model
+  pretrained: imagenet
+
+
+loss:
+  name: WeightLabelLoss
+
+optimizer:
+  # steps to accumulate gradients: num > 0 or null
+  bn_momentum: 0.05
+  accum_steps: 1
+  # SGD, RMSprop
+  name: SGD
+  # null or 5
+  clip_norm: null
+  lr: 0.01
+  momentum: 0.9
+  weight_decay: 0.0003
+
+metric:
+  name: acc_topk
+  acc_topk: [1]
+
+lr_strategy:
+  # stepwise
+  #name: stepwise
+  #start_lr: 0.01
+  #step_epochs: 2
+  #decay_scale: 0.1
+  # cosine
+  name: cosine
+  warmup_epochs: 5
+  warmup_lr: [0.01, 0.01]
+  lr_range: [0.01, 0.00001]
+  # num_epochs is copied from global section
+  #num_epochs: 100
+  # it will be divided by accum_steps automatically.
+  steps_each_epoch: 10
+

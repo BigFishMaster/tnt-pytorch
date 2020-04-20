@@ -45,8 +45,9 @@ class GeneralDataLoader(Dataset):
         data = self.data_list[index].decode()
         # there are two cases:
         # train or valid:
-        # 1. image, label
-        # 2. image, [label1, label2]
+        # 1. normal:       image, label
+        # 2. multi-label:  image, [label1, label2]
+        # 3. weight-label: image, score, label
         # test:
         # 1. image
         result = self._field(data)

@@ -35,7 +35,32 @@ class MultiLabelLoss(torch.nn.Module):
         return loss
 
 
-def test():
+class WeightLabelLoss(torch.nn.Module):
+
+    def __init__(self):
+        super(WeightLabelLoss, self).__init__()
+        self.ce = torch.nn.CrossEntropyLoss(reduction="none")
+
+    def forward(self, x, y):
+        """
+        Args:
+            x: batch_size x class_dim
+            y: a list with [target, score],
+                 target: batch_size
+                 score: batch_size
+        Returns:
+
+        """
+        #x = torch.rand(10, 100)
+        #y = [torch.randint(0, 100, (10,)), torch.rand(10,)]
+        w, t = y
+        l = self.ce(x, t)
+        w_l = w * l
+        w_l = w_l.mean()
+        return w_l
+
+
+def test_multilabelloss():
     loss_fn = MultiLabelLoss()
     x = torch.rand(4, 10)
     y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,0,-1,-1,-1],[3,2,1,0,4]])
@@ -43,5 +68,14 @@ def test():
     print(loss)
 
 
+def test_weightlabelloss():
+    loss_fn = WeightLabelLoss()
+    x = torch.rand(4, 10)
+    y = [torch.Tensor([2,6,4,8]), torch.Tensor([0.3,0.2,0.4,0.7])]
+    loss = loss_fn(x, y)
+    print(loss)
+
+
 if __name__ == "__main__":
-    test()
+    #test_multilabelloss()
+    test_weightlabelloss()

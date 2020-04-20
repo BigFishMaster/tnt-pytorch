@@ -18,7 +18,6 @@ import tnt.pretrainedmodels as pretrainedmodels
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None):
         if os.path.exists(model_name_or_path):
-            # TODO: test model_file mode.
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
             if pretrained:
@@ -26,7 +25,6 @@ class ModelImpl:
                 model.load_state_dict(state_dict)
         elif model_name_or_path in pretrainedmodels.model_names:
             model_name = model_name_or_path
-            # TODO: if not pretrained, the below members will not be initialized:
             # input_space, input_size, input_range, mean, std
             model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)
@@ -293,16 +291,17 @@ class ModelBuilder:
         else:
             self.model.eval()
         start = time.time()
-        # TODO: 'topk' parameter should be initialized ?
         report_stats = Statistics()
         learning_rate = -1
         step = -1
         self.optimizer.zero_grad()
         for step, batch in enumerate(data_iter):
             if mode != "test":
-                input, target = batch
+                if len(batch) == 2:
+                    input, target = batch
+                else:  # > 2:
+                    input, target = batch[0], batch[1:]
             else:
-                # TODO: process the output when testing
                 input, target = batch[0], None
 
             if self.gpu is not None:
@@ -316,7 +315,10 @@ class ModelBuilder:
 
             if mode != "test":
                 if torch.cuda.is_available():
-                    target = target.cuda(self.gpu, non_blocking=True)
+                    if isinstance(target, list):
+                        target = [t.cuda(self.gpu, non_blocking=True) for t in target]
+                    else:
+                        target = target.cuda(self.gpu, non_blocking=True)
                 loss = self.loss(output, target)
 
                 if mode == "train":
@@ -330,7 +332,8 @@ class ModelBuilder:
                         self.optimizer.step()
                         self.optimizer.zero_grad()
 
-                batch_stats = self.metric(output=output, target=target, loss=loss.item())
+                batch_stats = self.metric(output=output, target=target[-1] if isinstance(target, list) else target,
+                                          loss=loss.item())
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)
