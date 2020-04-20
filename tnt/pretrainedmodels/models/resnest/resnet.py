@@ -14,6 +14,15 @@ from .splat import SplAtConv2d
 
 __all__ = ['ResNet', 'Bottleneck']
 
+
+# imag preprocessing
+input_space = "RGB"
+input_range = [0, 1]
+input_sizes = [3, 224, 224]
+means = [0.485, 0.456, 0.406]
+stds = [0.229, 0.224, 0.225]
+
+
 class DropBlock2D(object):
     def __init__(self, *args, **kwargs):
         raise NotImplementedError
@@ -158,6 +167,12 @@ class ResNet(nn.Module):
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
                  last_gamma=False, norm_layer=nn.BatchNorm2d):
+        self.input_space = input_space
+        self.input_range = input_range
+        self.input_size = input_sizes
+        self.mean = means
+        self.std = stds
+
         self.cardinality = groups
         self.bottleneck_width = bottleneck_width
         # ResNet-D params
