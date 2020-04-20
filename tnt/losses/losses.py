@@ -55,7 +55,7 @@ class WeightLabelLoss(torch.nn.Module):
         #y = [torch.randint(0, 100, (10,)), torch.rand(10,)]
         w, t = y
         l = self.ce(x, t)
-        w_l = w * l
+        w_l = w.float() * l
         w_l = w_l.mean()
         return w_l
 
