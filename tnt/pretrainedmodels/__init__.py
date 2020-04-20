@@ -8,6 +8,7 @@ from .models.utils import model_names
 
 # to support pretrainedmodels.__dict__['nasnetalarge']
 # but depreciated
+from .models.resnest import *
 from .models.efficientnet import *
 from .models.billion_scale_models import resnet18_ssl
 from .models.billion_scale_models import resnet18_swsl

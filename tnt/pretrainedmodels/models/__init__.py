@@ -1,5 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
+from .resnest import *
+
 from .efficientnet import *
 
 from .billion_scale_models import resnet18_ssl

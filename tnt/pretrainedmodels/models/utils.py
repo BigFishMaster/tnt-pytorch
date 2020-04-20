@@ -1,6 +1,7 @@
 from __future__ import print_function, division, absolute_import
 from .billion_scale_models import model_names as bs_model_names
 from .efficientnet.efficientnet import model_names as ef_model_names
+from .resnest.resnest import model_names as resnest_model_names
 from .fbresnet import pretrained_settings as fbresnet_settings
 from .bninception import pretrained_settings as bninception_settings
 from .resnext import pretrained_settings as resnext_settings
@@ -42,3 +43,5 @@ for settings in all_settings:
 
 model_names += bs_model_names
 model_names += ef_model_names
+model_names += resnest_model_names
+
