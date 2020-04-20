@@ -39,7 +39,7 @@ def resnest50(pretrained=False, root='~/.encoding/models', **kwargs):
                    avd=True, avd_first=False, **kwargs)
     if pretrained:
         model.load_state_dict(torch.hub.load_state_dict_from_url(
-            resnest_model_urls['resnest50'], progress=True, check_hash=True))
+            resnest_model_urls['resnest50'], progress=True))
     return model
 
 def resnest101(pretrained=False, root='~/.encoding/models', **kwargs):
@@ -49,7 +49,7 @@ def resnest101(pretrained=False, root='~/.encoding/models', **kwargs):
                    avd=True, avd_first=False, **kwargs)
     if pretrained:
         model.load_state_dict(torch.hub.load_state_dict_from_url(
-            resnest_model_urls['resnest101'], progress=True, check_hash=True))
+            resnest_model_urls['resnest101'], progress=True))
     return model
 
 def resnest200(pretrained=False, root='~/.encoding/models', **kwargs):
@@ -59,7 +59,7 @@ def resnest200(pretrained=False, root='~/.encoding/models', **kwargs):
                    avd=True, avd_first=False, **kwargs)
     if pretrained:
         model.load_state_dict(torch.hub.load_state_dict_from_url(
-            resnest_model_urls['resnest200'], progress=True, check_hash=True))
+            resnest_model_urls['resnest200'], progress=True))
     return model
 
 def resnest269(pretrained=False, root='~/.encoding/models', **kwargs):
@@ -69,5 +69,5 @@ def resnest269(pretrained=False, root='~/.encoding/models', **kwargs):
                    avd=True, avd_first=False, **kwargs)
     if pretrained:
         model.load_state_dict(torch.hub.load_state_dict_from_url(
-            resnest_model_urls['resnest269'], progress=True, check_hash=True))
+            resnest_model_urls['resnest269'], progress=True))
     return model
