@@ -67,6 +67,7 @@ class GeneralDataLoader(Dataset):
         if mode != "train":
             return None
         strategy = cfg.get("strategy")
+        logger.info("In mode {}, sampling strategy is {}".format(mode, strategy))
         num_samples = cfg.get("num_samples") or len(self.data_list)
         replacement = cfg.get("replacement") or True
         sample_labels = []
@@ -91,6 +92,37 @@ class GeneralDataLoader(Dataset):
             weights = 1.0 / np.array(weights)
             sample_weights = weights[sample_labels]
             sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
+                                            replacement=replacement)
+            del weights
+            del sample_weights
+            del sample_labels
+            del class_weights
+            del sorted_weights
+            return sampler
+        elif strategy == "instance_weighted":
+            sample_weights = np.zeros(len(self.data_list))
+            for i, data in enumerate(self.data_list):
+                if i % 10000 == 0:
+                    logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
+                # data is [image, score, label]
+                score, label = self._field(data.decode(), last=[1, 2])
+                sample_weights[i] = score
+                sample_labels.append(label)
+            logger.info("creating sampler totally: %d", len(self.data_list))
+
+            class_weights = Counter()
+            class_weights.update(sample_labels)
+            if len(class_weights) != self.num_classes:
+                logger.warning("{} classes have no samples.".format(self.num_classes-len(class_weights)))
+                for cls in range(self.num_classes):
+                    if cls not in class_weights:
+                        class_weights.update({cls:1e9})
+            sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
+            class_weights = [s[1] for s in sorted_weights]
+            class_weights = 1.0 / np.array(class_weights)
+            class_weights = class_weights[sample_labels]
+            weights = sample_weights * class_weights
+            sampler = WeightedRandomSampler(weights=weights, num_samples=num_samples,
                                             replacement=replacement)
             del weights
             del sample_weights

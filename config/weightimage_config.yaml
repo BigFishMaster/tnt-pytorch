@@ -12,7 +12,7 @@ data:
   # sampling strategy
   sampler:
     # class_balanced, null
-    strategy: class_balanced
+    strategy: instance_weighted
     batch_size: 2
     num_workers: 0
     num_samples: 20
@@ -20,7 +20,7 @@ data:
   # json or txt
   format: txt
   # data modal: image, video, vector, text, label
-  modals: [image, label_weight, label]
+  modals: [image, image_weight, label]
   # data types:
   #  image: path, npy
   #  text: raw, token, file
@@ -50,7 +50,7 @@ model:
 
 
 loss:
-  name: WeightLabelLoss
+  name: CrossEntropyLoss
 
 optimizer:
   # steps to accumulate gradients: num > 0 or null

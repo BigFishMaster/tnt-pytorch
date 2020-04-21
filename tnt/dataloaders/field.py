@@ -5,8 +5,9 @@ from tnt.utils.io import *
 
 
 __FORMAT__ = ["txt", "json"]
-__MODAL__ = ["image", "label", "multi_label", "score"]
-__TYPE__ = ["path", "npy", "int", "float"]
+__MODAL__ = ["image", "label", "multi_label", "image_weight", "label_weight"]
+# "none" is used to skip some fields.
+__TYPE__ = ["path", "npy", "int", "float", "none"]
 
 
 def check(v, c):
@@ -50,7 +51,8 @@ class Field:
         logger.info("In mode %s, image transforms are: %s", mode, self.transforms)
 
         self._fns = []
-        for m, t in zip(self.modals, self.types):
+        self._ignore_fields = []
+        for i, (m, t) in enumerate(zip(self.modals, self.types)):
             if m == "image" and t == "path":
                 fn = partial(load_image_from_path, data_prefix=data_prefix, transforms=self.transforms)
             elif m == "image" and t == "npy":
@@ -59,20 +61,37 @@ class Field:
                 fn = lambda x: int(x)
             elif m == "multi_label" and t == "int":
                 fn = lambda x: [int(i) for i in x]
-            elif m == "score" and t == "float":
+            elif m == "label_weight" and t == "float":
                 fn = lambda x: float(x)
+            elif m == "image_weight" and t == "float":
+                fn = lambda x: float(x)
+                self._ignore_fields.append(i)
+            elif t == "none":
+                fn = None
             else:
                 raise NotImplementedError("modals: {}, type: {} not implemented.".format(m, t))
             self._fns.append(fn)
 
     def _parser(self, fields, last):
-        if last:
-            return [self._fns[-1](fields[-1])]
+        if isinstance(last, list):
+            return [self._fns[l](fields[l]) for l in last]
+        elif isinstance(last, bool):
+            if last:
+                return [self._fns[-1](fields[-1])]
+        # TODO: this is true if last is bool type.
+        elif isinstance(last, int):
+            return [self._fns[last](fields[last])]
+        else:
+            pass
 
         # warn: in test mode, only return the image array;
         #       the label is ommited although its _fn is initialized.
         data = []
         for i, f in enumerate(fields):
+            if i in self._ignore_fields:
+                continue
+            if self._fns[i] is None:
+                continue
             data.append(self._fns[i](f))
         return data
 
