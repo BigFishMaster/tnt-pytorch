@@ -69,7 +69,7 @@ def load_image_from_path(path, data_prefix=None, transforms=None):
     if data_prefix is not None:
         path = data_prefix + path
     with open(path, "rb") as f:
-        with Image.open(f ) as img:
+        with Image.open(f) as img:
             img = img.convert("RGB")
     if transforms:
         img = transforms(img)

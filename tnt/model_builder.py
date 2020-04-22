@@ -168,6 +168,7 @@ class ModelBuilder:
         # fix BatchNorm
         # it can be used when the performance is affected by batch size.
         self.fix_bn = config["optimizer"].get("fix_bn", False)
+        self.fix_res = config["optimizer"].get("fix_res", False)
         # tensorboard logging
         self.tb_log = config["tb_log"]
         logger.info("fix batchnorm:{}".format(self.fix_bn))
@@ -288,6 +289,26 @@ class ModelBuilder:
                     if classname.find('BatchNorm') != -1:
                         m.eval()
                 self.model.apply(set_bn_eval)
+            elif self.fix_res:
+                # change the behavior of dropout and BN.
+                self.model.eval()
+                # fix parameters expect the last linear layer.
+                # TODO: the linear layer must be a standalone module.
+                for name, child in self.model.named_children():
+                    class_name = child.__class__.__name__
+                    if class_name == "Linear":
+                        continue
+                    for _, param in child.named_parameters():
+                        param.requires_grad = False
+                # train the running mean and running var of the last BN.
+                # the gradients of the scale and bias are not trained.
+                last_bn = None
+                for name, module in self.model.named_modules():
+                    class_name = module.__class__.__name__
+                    if class_name != "BatchNorm2d":
+                        continue
+                    last_bn = module
+                last_bn.train()
         else:
             self.model.eval()
         start = time.time()

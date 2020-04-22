@@ -52,6 +52,7 @@ def create_config():
         config["data"]["output"]["mode"] = config["out_mode"]
     #####################################
     config["optimizer"]["fix_bn"] = config["fix_bn"]
+    config["optimizer"]["fix_res"] = config["fix_res"]
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
