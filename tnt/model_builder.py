@@ -294,20 +294,20 @@ class ModelBuilder:
                 self.model.eval()
                 # fix parameters expect the last linear layer.
                 # TODO: the linear layer must be a standalone module.
-                for name, child in self.model.named_children():
-                    class_name = child.__class__.__name__
-                    if class_name == "Linear":
-                        continue
-                    for _, param in child.named_parameters():
-                        param.requires_grad = False
-                # train the running mean and running var of the last BN.
-                # the gradients of the scale and bias are not trained.
                 last_bn = None
+                last_ln = None
                 for name, module in self.model.named_modules():
                     class_name = module.__class__.__name__
-                    if class_name != "BatchNorm2d":
-                        continue
-                    last_bn = module
+                    if class_name == "BatchNorm2d":
+                        last_bn = module
+                    if class_name == "Linear":
+                        last_ln = module
+                for param in self.model.parameters():
+                    param.requires_grad = False
+                for param in last_ln.parameters():
+                    param.requires_grad = True
+                # train the running mean and running var of the last BN.
+                # the gradients of the scale and bias are not trained.
                 last_bn.train()
         else:
             self.model.eval()
