@@ -30,6 +30,8 @@ def create_config():
         config["data"]["num_classes"] = config["num_classes"]
     if config["pretrained"] is not None:
         config["model"]["pretrained"] = config["pretrained"]
+    if config["model_name"] is not None:
+        config["model"]["name"] = config["model_name"]
     if config["resume"] is not None:
         config["global"]["resume"] = config["resume"]
     if config["weight"] is not None:
