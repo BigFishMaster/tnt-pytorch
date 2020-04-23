@@ -26,6 +26,8 @@ def basic_opts(parser):
                         help="model weight to load.")
     parser.add_argument("--fix_bn", default=False, action="store_true",
                         help="fix batchnorm layer.")
+    parser.add_argument("--disable_pin_memory", default=False, action="store_true",
+                        help="disable the pin memory in dataloader.")
     parser.add_argument("--fix_res", default=False, action="store_true",
                         help="fix resolution by fine-tune last BN and linear layer.")
     parser.add_argument("--keep_last_layer", default=False, action="store_true",

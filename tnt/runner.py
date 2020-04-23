@@ -53,6 +53,7 @@ def create_config():
             config["data"]["output"] = {}
         config["data"]["output"]["mode"] = config["out_mode"]
     #####################################
+    config["data"]["pin_memory"] = config["disable_pin_memory"] is False
     config["optimizer"]["fix_bn"] = config["fix_bn"]
     config["optimizer"]["fix_res"] = config["fix_res"]
     config["model"]["gpu"] = config["global"]["gpu"]
