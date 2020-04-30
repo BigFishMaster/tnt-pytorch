@@ -44,9 +44,7 @@ class ToRange255(object):
 
 class TransformImage(object):
 
-    def __init__(self, opts, scale=0.875, random_crop=False,
-                 random_hflip=False, random_vflip=False,
-                 preserve_aspect_ratio=True):
+    def __init__(self, opts, random_crop=False, random_hflip=False, random_vflip=False):
         if type(opts) == dict:
             opts = munchify(opts)
         self.input_size = opts.input_size
@@ -59,8 +57,8 @@ class TransformImage(object):
         self.is_train = random_crop or random_hflip or random_vflip
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
-        self.scale = scale
-        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.scale = opts.image_scale
+        self.preserve_aspect_ratio = opts.preserve_aspect_ratio
         self.random_crop = random_crop
         self.random_hflip = random_hflip
         self.random_vflip = random_vflip

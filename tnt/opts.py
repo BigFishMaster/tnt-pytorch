@@ -42,3 +42,7 @@ def basic_opts(parser):
                         help="ten crops when testing.")
     parser.add_argument("--num_epochs", default=None, type=int,
                         help="number of epochs to train.")
+    parser.add_argument("--image_scale", default=0.875, type=float,
+                        help="image to be scaled before cropping.")
+    parser.add_argument("--preserve_aspect_ratio", default=1, type=int,
+                        help="whether to preserve image aspect ratio when scaling.")
