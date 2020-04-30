@@ -272,9 +272,11 @@ class ModelBuilder:
                 if topk > 1:
                     maxk = min(topk, output.shape[1])
                     score, pred = output.topk(maxk, 1, True, True)
+                    score = score.cpu().numpy()
+                    pred = pred.cpu().numpy()
                 else:
                     pred = output
-                pred = pred.cpu().numpy()
+                    pred = pred.cpu().numpy()
                 num = len(pred)
                 for i in range(num):
                     if score is None:
