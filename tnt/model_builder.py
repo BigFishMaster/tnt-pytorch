@@ -268,15 +268,19 @@ class ModelBuilder:
         with torch.no_grad():
             topk = int(self.out_mode[3:]) if self.out_mode != "raw" else -1
             if self.fout is not None and self.fout.closed is False:
+                score = None
                 if topk > 1:
                     maxk = min(topk, output.shape[1])
-                    _, pred = output.topk(maxk, 1, True, True)
+                    score, pred = output.topk(maxk, 1, True, True)
                 else:
                     pred = output
                 pred = pred.cpu().numpy()
                 num = len(pred)
                 for i in range(num):
-                    out = " ".join([str(_) for _ in pred[i]])
+                    if score is None:
+                        out = " ".join([str(_) for _ in pred[i]])
+                    else:
+                        out = " ".join([str(p) + ":" + str(s) for p, s in zip(pred[i], score[i])])
                     self.fout.write(out+"\n")
                     self.fout.flush()
             else:
