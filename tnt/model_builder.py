@@ -272,6 +272,7 @@ class ModelBuilder:
                 if topk > 1:
                     maxk = min(topk, output.shape[1])
                     score, pred = output.topk(maxk, 1, True, True)
+                    score = score.softmax(1)
                     score = score.cpu().numpy()
                     pred = pred.cpu().numpy()
                 else:
