@@ -60,7 +60,11 @@ class Field:
             elif m == "label" and t == "int":
                 fn = lambda x: int(x)
             elif m == "multi_label" and t == "int":
-                fn = lambda x: [int(i) for i in x]
+                def _func(x):
+                    if isinstance(x, str):
+                        x = [x]
+                    return [int(i) for i in x]
+                fn = _func
             elif m == "label_weight" and t == "float":
                 fn = lambda x: float(x)
             elif m == "image_weight" and t == "float":
