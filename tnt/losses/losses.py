@@ -37,10 +37,11 @@ class RelativeLabelLoss(torch.nn.Module):
             pred = data.gather(0, index_selected)
             min_pred_index = pred.argmin()
             relative_index = index_selected[min_pred_index]
-            ones[relative_index] = 1
             cand_index = ones.nonzero().view(-1)
-            cand_data = torch.gather(data, 0, cand_index)
-            relative_loss = F.cross_entropy(cand_data.view(1,-1), relative_index.view(-1))
+            all_index = torch.cat([relative_index.view(-1), cand_index])
+            cand_data = torch.gather(data, 0, all_index)
+            target_label = torch.zeros(1, dtype=torch.long, device=index.device)
+            relative_loss = F.cross_entropy(cand_data.view(1,-1), target_label)
             loss2 += relative_loss
 
         loss = loss1 + self.gamma * loss2/count
