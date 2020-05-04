@@ -32,7 +32,7 @@ class RelativeLabelLoss(torch.nn.Module):
             if len(index_selected) == 0:
                 continue
             count += 1
-            ones = torch.ones(class_dim)
+            ones = torch.ones(class_dim, device=index.device)
             ones[index_selected] = 0
             pred = data.gather(0, index_selected)
             min_pred_index = pred.argmin()
