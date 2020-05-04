@@ -2,6 +2,51 @@ import torch
 import torch.nn.functional as F
 
 
+class RelativeLabelLoss(torch.nn.Module):
+
+    def __init__(self, gamma=0.2):
+        super(RelativeLabelLoss, self).__init__()
+        self.ce = torch.nn.CrossEntropyLoss()
+        self.gamma = gamma
+
+    def forward(self, x, y):
+        """
+        Args:
+            x: batch_size x class_dim
+            y: batch_size x target_dim
+
+        Returns:
+
+        """
+        y = y.long()
+        target = y[:, 0]
+        loss1 = self.ce(x, target)
+        batch_size, class_dim = x.shape
+        count = 1e-8
+        loss2 = 0
+        for i in range(batch_size):
+            data = x[i]
+            index = y[i][1:]
+            flag = index.ne(-1)
+            index_selected = index[flag]
+            if len(index_selected) == 0:
+                continue
+            count += 1
+            ones = torch.ones(class_dim)
+            ones[index_selected] = 0
+            pred = data.gather(0, index_selected)
+            min_pred_index = pred.argmin()
+            relative_index = index_selected[min_pred_index]
+            ones[relative_index] = 1
+            cand_index = ones.nonzero().view(-1)
+            cand_data = torch.gather(data, 0, cand_index)
+            relative_loss = F.cross_entropy(cand_data.view(1,-1), relative_index.view(-1))
+            loss2 += relative_loss
+
+        loss = loss1 + self.gamma * loss2/count
+        return loss
+
+
 class MultiLabelLoss(torch.nn.Module):
 
     def __init__(self):
@@ -60,6 +105,14 @@ class WeightLabelLoss(torch.nn.Module):
         return w_l
 
 
+def test_relativelabelloss():
+    loss_fn = RelativeLabelLoss()
+    x = torch.rand(4, 10)
+    y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
+    loss = loss_fn(x, y)
+    print(loss)
+
+
 def test_multilabelloss():
     loss_fn = MultiLabelLoss()
     x = torch.rand(4, 10)
@@ -78,4 +131,5 @@ def test_weightlabelloss():
 
 if __name__ == "__main__":
     #test_multilabelloss()
-    test_weightlabelloss()
+    #test_weightlabelloss()
+    test_relativelabelloss()

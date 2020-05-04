@@ -85,8 +85,10 @@ class ModelImpl:
 
 
 class LossImpl:
-    def __init__(self, loss_name, gpu):
+    def __init__(self, loss_name, gpu, **kwargs):
         loss = losses.__dict__[loss_name]()
+        if loss_name == "RelativeLabelLoss":
+            loss.gamma = kwargs.get("gamma", 0.2)
         loss.cuda(gpu)
         self.loss = loss
         self.gpu = gpu
@@ -95,7 +97,9 @@ class LossImpl:
     def from_config(cls, config):
         loss_name = config["name"]
         gpu = config["gpu"]
-        return cls(loss_name, gpu).loss
+        config.pop("name")
+        config.pop("gpu")
+        return cls(loss_name, gpu, **config).loss
 
 
 class OptImpl:

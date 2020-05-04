@@ -46,3 +46,5 @@ def basic_opts(parser):
                         help="image to be scaled before cropping.")
     parser.add_argument("--preserve_aspect_ratio", default=1, type=int,
                         help="whether to preserve image aspect ratio when scaling.")
+    parser.add_argument("--relativelabelloss_gamma", default=0.2, type=float,
+                        help="gamma of RelativeLabelLoss.")

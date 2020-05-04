@@ -59,6 +59,7 @@ def create_config():
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
+    config["loss"]["gamma"] = config["relativelabelloss_gamma"]
     num_epochs = config["global"]["num_epochs"]
     config["lr_strategy"]["num_epochs"] = num_epochs
     # accumlation steps will affect the steps number of each epoch.
