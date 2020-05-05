@@ -25,17 +25,21 @@ class RelativeLabelLoss(torch.nn.Module):
         loss1 = self.ce(x, target)
         batch_size, class_dim = x.shape
         count = 1e-8
-        loss2 = 0
+        loss2 = torch.tensor(0.0, device=loss1.device)
         for i in range(batch_size):
             data = x[i]
-            index = y[i][1:]
+            index = y[i]
             flag = index.ne(-1)
+            # it is all negative indices.
             index_selected = index[flag]
-            if len(index_selected) == 0:
+            # skip it if exists no relative labels, like: [0, -1, -1].
+            if len(index_selected) <= 1:
                 continue
             count += 1
             ones = torch.ones(class_dim, device=index.device)
+            # mask the negative indices
             ones[index_selected] = 0
+            # gather data from target label and its relative labels.
             pred = data.gather(0, index_selected)
             min_pred_index = pred.argmin()
             relative_index = index_selected[min_pred_index]
@@ -43,7 +47,7 @@ class RelativeLabelLoss(torch.nn.Module):
             all_index = torch.cat([relative_index.view(-1), cand_index])
             cand_data = torch.gather(data, 0, all_index)
             target_label = torch.zeros(1, dtype=torch.long, device=index.device)
-            relative_loss = F.cross_entropy(cand_data.view(1,-1), target_label)
+            relative_loss = F.cross_entropy(cand_data.view(1, -1), target_label)
             loss2 += relative_loss
 
         loss2 = loss2/count
