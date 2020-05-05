@@ -366,8 +366,14 @@ class ModelBuilder:
                         self.optimizer.step()
                         self.optimizer.zero_grad()
 
+                if hasattr(self.loss, "loss1") and hasattr(self.loss, "loss2"):
+                    out_loss = [loss.item()]
+                    out_loss.append(self.loss.loss1)
+                    out_loss.append(self.loss.loss2)
+                else:
+                    out_loss = [loss.item()]
                 batch_stats = self.metric(output=output, target=target[-1] if isinstance(target, list) else target,
-                                          loss=loss.item())
+                                          loss=out_loss)
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)

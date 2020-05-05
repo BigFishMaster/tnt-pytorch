@@ -8,7 +8,10 @@ from collections import Counter
 
 class Statistics(object):
     def __init__(self, loss=0, n=0, topk=(1,), vals=None):
-        self.loss = loss
+        if not isinstance(loss, list):
+            loss = [loss]
+        self.loss = Counter({k: v for k, v in zip(range(len(loss)), loss)})
+
         # forbidden divided by zero
         self.n = n or 1e-8
         if vals:
@@ -19,21 +22,22 @@ class Statistics(object):
         self.start_time = time.time()
 
     def update(self, stat):
-        self.loss += stat.loss
         self.n += stat.n
+        self.loss.update(stat.loss)
         self.n_correct.update(stat.n_correct)
 
     def acc(self, topk=1):
         """ compute accuracy """
         return 100 * (self.n_correct[topk] / self.n)
 
-    def avgloss(self):
+    def avgloss(self, key=0):
         """ compute cross entropy """
-        return self.loss / self.n
+        return self.loss[key] / self.n
 
     def ppl(self):
         """ compute perplexity """
-        return math.exp(min(self.loss / self.n, 100))
+        # TODO: use the first loss, which is the whole loss now.
+        return math.exp(min(self.loss[0] / self.n, 100))
 
     def elapsed_time(self):
         """ compute elapsed time """
@@ -43,14 +47,15 @@ class Statistics(object):
         t = self.elapsed_time()
         step_fmt = "%.4d/%.4d" % (step, num_steps)
         acc = " ".join(["top-%s:%6.2f" % (k, self.acc(k)) for k in self.n_correct.keys()])
+        loss = " ".join(["L-%s:%4.4f" % (k, self.avgloss(k)) for k in self.loss.keys()])
         logger.info(
-            ("(%s) step %s; acc: %s; ppl: %5.2f; avgloss: %4.4f; " +
+            ("(%s) step %s; acc: %s; ppl: %5.2f; avgloss: %s; " +
              "lr: %7.7f; %3.0f src/sec; %6.0f sec")
             % (mode,
                step_fmt,
                acc,
                self.ppl(),
-               self.avgloss(),
+               loss,
                lr,
                self.n / (t + 1e-5),
                time.time() - start))
@@ -59,8 +64,10 @@ class Statistics(object):
     def log(self, prefix, writer, lr, step):
         """ display statistics to tensorboard """
         t = self.elapsed_time()
-        writer.add_scalar(prefix + "/avgloss", self.avgloss(), step)
         writer.add_scalar(prefix + "/ppl", self.ppl(), step)
+        for k in self.loss:
+            name = "loss-" + str(k)
+            writer.add_scalar(prefix + "/avgloss/" + name, self.avgloss(k), step)
         for k in self.n_correct:
             name = "top-" + str(k)
             writer.add_scalar(prefix + "/acc/"+name, self.acc(k), step)

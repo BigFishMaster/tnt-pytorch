@@ -1,0 +1,69 @@
+data:
+  # mode: has 4 candidates:
+  # [train, valid] or [train] or [valid] or [test]
+  num_classes: 100
+  mode: [train, valid]
+  # relative or absolute path to train, valid or test file
+  train: ../tests/data/multilabel_data/train.txt
+  valid: ../tests/data/multilabel_data/valid.txt
+  test: null
+  # prefix path for each sample
+  data_prefix: ../tests/
+  # sampling strategy
+  sampler:
+    # class_balanced, null
+    strategy: multilabel_balanced
+    batch_size: 20
+    num_workers: 0
+    num_samples: null
+    replacement: true
+  # json or txt
+  format: txt
+  # data modal: image, video, vector, text, label
+  modals: [image, multi_label]
+  # data types:
+  #  image: path, npy
+  #  text: raw, token, file
+  #  label: int
+  types: [path, int] # e.g., image: path, npy, text: raw, token, file
+
+global:
+  gpu: null
+  resume: null
+  log_dir: ./runs/
+  log_file: train.log
+  num_epochs: 100
+  save_epoch_steps: 5
+  save_model_file: model-{}.pt
+  save_checkpoint_file: last_checkpoint.txt
+  report_interval: 2
+
+model:
+  # pretrained model should be placed into "pretrained" folder
+  TORCH_HOME: ../pretrained/
+  # network+classes+dataset (with pretraining), or network (w/o pretraining)
+  name: resnet18_swsl
+  # use default pretrained model: "imagenet"
+  # or usre-defined model
+  pretrained: true
+
+
+loss:
+  name: RelativeLabelLoss
+
+optimizer:
+  name: SGD
+  lr: 0.01
+  momentum: 0.9
+  weight_decay: 0.0003
+
+metric:
+  name: multilabel_topk
+  acc_topk: [1, 2, 3]
+
+lr_strategy:
+  name: stepwise
+  start_lr: 0.001
+  step_epochs: 30
+  decay_scale: 0.1
+

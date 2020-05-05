@@ -8,6 +8,8 @@ class RelativeLabelLoss(torch.nn.Module):
         super(RelativeLabelLoss, self).__init__()
         self.ce = torch.nn.CrossEntropyLoss()
         self.gamma = gamma
+        self.loss1 = 0
+        self.loss2 = 0
 
     def forward(self, x, y):
         """
@@ -44,7 +46,10 @@ class RelativeLabelLoss(torch.nn.Module):
             relative_loss = F.cross_entropy(cand_data.view(1,-1), target_label)
             loss2 += relative_loss
 
-        loss = loss1 + self.gamma * loss2/count
+        loss2 = loss2/count
+        loss = loss1 + self.gamma * loss2
+        self.loss1 = loss1.item()
+        self.loss2 = loss2.item()
         return loss
 
 
