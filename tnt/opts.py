@@ -48,3 +48,5 @@ def basic_opts(parser):
                         help="whether to preserve image aspect ratio when scaling.")
     parser.add_argument("--relativelabelloss_gamma", default=0.2, type=float,
                         help="gamma of RelativeLabelLoss.")
+    parser.add_argument("--use_first_label", default=False, action="store_true",
+                        help="use first label for sampling weight.")

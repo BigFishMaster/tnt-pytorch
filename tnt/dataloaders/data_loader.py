@@ -71,7 +71,8 @@ class GeneralDataLoader(Dataset):
         strategy = cfg.get("strategy")
         logger.info("In mode {}, sampling strategy is {}".format(mode, strategy))
         num_samples = cfg.get("num_samples") or len(self.data_list)
-        replacement = cfg.get("replacement") or True
+        replacement = cfg.get("replacement") or False
+        use_first_label = cfg.get("use_first_label") or False
         sample_labels = []
         if strategy == "class_balanced":
             for i, data in enumerate(self.data_list):
@@ -139,8 +140,12 @@ class GeneralDataLoader(Dataset):
                     logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
                 label = self._field(data.decode(), last=True)
                 # label[0] is a list
-                sample_labels.append(label[0])
-                class_weights.update(label[0])
+                if use_first_label:
+                    sample_labels.append([label[0][0]])
+                    class_weights.update([label[0][0]])
+                else:
+                    sample_labels.append(label[0])
+                    class_weights.update(label[0])
             logger.info("creating sampler totally: %d", len(self.data_list))
 
             if len(class_weights) != self.num_classes:

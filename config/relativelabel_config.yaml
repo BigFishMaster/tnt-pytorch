@@ -13,6 +13,7 @@ data:
   sampler:
     # class_balanced, null
     strategy: multilabel_balanced
+    use_first_label: false
     batch_size: 20
     num_workers: 0
     num_samples: null

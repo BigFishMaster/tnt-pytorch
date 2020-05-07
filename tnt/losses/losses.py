@@ -2,6 +2,52 @@ import torch
 import torch.nn.functional as F
 
 
+class RelativeLabelLossV2(torch.nn.Module):
+
+    def __init__(self, gamma=0.2):
+        super(RelativeLabelLossV2, self).__init__()
+        self.ce = torch.nn.CrossEntropyLoss()
+        self.gamma = gamma
+        self.loss1 = 0
+        self.loss2 = 0
+
+    def forward(self, x, y):
+        # loss1
+        y = y.long()
+        target = y[:, 0]
+        loss1 = self.ce(x, target)
+        # loss2
+        batch_size, class_dim = x.shape
+        pos_mask = y != -1
+        sample_mask = pos_mask.float().sum(1) > 1
+        # positive predictions
+        neg_mask = y == -1
+        y[neg_mask] = 0
+        pos_data = torch.gather(x, dim=1, index=y)
+        pos_data[neg_mask] = 1e8
+        min_relative_index = pos_data.argmin(1, keepdim=True)
+        min_relative_data = torch.gather(pos_data, dim=1, index=min_relative_index)
+        # negative predictions
+        pos_mask = pos_mask.view(-1)
+        bias = torch.arange(batch_size, dtype=torch.long, device=x.device) * class_dim
+        new_index = bias.view(batch_size, 1) + y
+        new_index = new_index.view(-1)
+        # available positive mask
+        new_index = new_index[pos_mask]
+        new_data = x.contiguous().view(-1)
+        new_data[new_index] = -1e8
+        new_data = new_data.view(batch_size, class_dim)
+        relative_data = torch.cat([min_relative_data, new_data], dim=1)
+        relative_data = relative_data[sample_mask]
+        target_label = torch.zeros(relative_data.size(0), dtype=torch.long, device=relative_data.device)
+        loss2 = F.cross_entropy(relative_data, target_label)
+
+        loss = loss1 + self.gamma * loss2
+        self.loss1 = loss1.item()
+        self.loss2 = loss2.item()
+        return loss
+
+
 class RelativeLabelLoss(torch.nn.Module):
 
     def __init__(self, gamma=0.2):
@@ -116,10 +162,15 @@ class WeightLabelLoss(torch.nn.Module):
 
 
 def test_relativelabelloss():
-    loss_fn = RelativeLabelLoss()
+    loss_fn = RelativeLabelLossV2()
+    torch.manual_seed(123)
     x = torch.rand(4, 10)
     y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
-    loss = loss_fn(x, y)
+    import time
+    start = time.time()
+    for i in range(100):
+        loss = loss_fn(x, y)
+    print("time:", time.time() - start)
     print(loss)
 
 
