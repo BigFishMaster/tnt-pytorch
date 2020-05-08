@@ -236,7 +236,8 @@ def test_relativelabelloss():
     torch.manual_seed(123)
     torch.set_printoptions(6)
     x = torch.rand(4, 10, requires_grad=True)
-    y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
+    #y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
+    y = torch.Tensor([[1],[2],[2],[3]])
     import time
     start = time.time()
     loss = loss_fn(x, y)
@@ -263,5 +264,5 @@ def test_weightlabelloss():
 if __name__ == "__main__":
     #test_multilabelloss()
     #test_weightlabelloss()
-    #test_relativelabelloss()
+    test_relativelabelloss()
     test_relativelabelloss_v2()
