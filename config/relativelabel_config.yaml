@@ -50,7 +50,7 @@ model:
 
 
 loss:
-  name: RelativeLabelLoss
+  name: RelativeLabelLossV2
 
 optimizer:
   name: SGD
