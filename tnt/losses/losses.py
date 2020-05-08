@@ -18,7 +18,7 @@ class RelativeLabelLossV2(torch.nn.Module):
         _, num_labels = y.shape
         t, r = torch.split(y, [1, num_labels-1], dim=1)
         loss1 = self.ce(x, t.view(-1))
-        if r.size(1) > 0:  # train
+        if self.gamma > 0 and r.size(1) > 0:  # train
             # loss2
             batch_size, class_dim = x.shape
             pos_mask = r != -1
