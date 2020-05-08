@@ -87,7 +87,7 @@ class ModelImpl:
 class LossImpl:
     def __init__(self, loss_name, gpu, **kwargs):
         loss = losses.__dict__[loss_name]()
-        if loss_name == "RelativeLabelLoss":
+        if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
             loss.gamma = kwargs.get("gamma", 0.2)
         loss.cuda(gpu)
         self.loss = loss
