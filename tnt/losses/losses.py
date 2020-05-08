@@ -18,37 +18,41 @@ class RelativeLabelLossV2(torch.nn.Module):
         _, num_labels = y.shape
         t, r = torch.split(y, [1, num_labels-1], dim=1)
         loss1 = self.ce(x, t.view(-1))
-        # loss2
-        batch_size, class_dim = x.shape
-        pos_mask = r != -1
-        sample_mask = pos_mask.float().sum(1) > 0
-        # positive predictions
-        neg_mask = r == -1
-        r[neg_mask] = 0
-        pos_data = torch.gather(x, dim=1, index=r)
-        mask_pos_data = torch.where(neg_mask, torch.tensor(1e8, device=x.device), pos_data)
-        min_relative_index = mask_pos_data.argmin(1, keepdim=True)
-        min_relative_data = torch.gather(mask_pos_data, dim=1, index=min_relative_index)
-        # negative predictions
-        bias = torch.arange(batch_size, dtype=torch.long, device=x.device) * class_dim
-        new_index = bias.view(batch_size, 1) + y
-        new_index = new_index.view(-1)
-        # available positive mask
-        new_index = new_index[y_mask]
-        flag = torch.ones(batch_size, class_dim, device=x.device).bool().view(-1)
-        flag[new_index] = False
-        flag = flag.view(batch_size, class_dim)
-        new_data = torch.where(flag, x, torch.tensor(-1e8, device=x.device))
-        #new_data = new_data.view(batch_size, class_dim)
-        relative_data = torch.cat([min_relative_data, new_data], dim=1)
-        cand_data = relative_data[sample_mask]
-        target_label = torch.zeros(cand_data.size(0), dtype=torch.long, device=x.device)
-        loss2 = F.cross_entropy(cand_data, target_label)
-
-        loss = loss1 + self.gamma * loss2
-        self.loss1 = loss1.item()
-        self.loss2 = loss2.item()
-        return loss
+        if r.size(1) > 0:  # train
+            # loss2
+            batch_size, class_dim = x.shape
+            pos_mask = r != -1
+            sample_mask = pos_mask.float().sum(1) > 0
+            # positive predictions
+            neg_mask = r == -1
+            r[neg_mask] = 0
+            pos_data = torch.gather(x, dim=1, index=r)
+            mask_pos_data = torch.where(neg_mask, torch.tensor(1e8, device=x.device), pos_data)
+            min_relative_index = mask_pos_data.argmin(1, keepdim=True)
+            min_relative_data = torch.gather(mask_pos_data, dim=1, index=min_relative_index)
+            # negative predictions
+            bias = torch.arange(batch_size, dtype=torch.long, device=x.device) * class_dim
+            new_index = bias.view(batch_size, 1) + y
+            new_index = new_index.view(-1)
+            # available positive mask
+            new_index = new_index[y_mask]
+            flag = torch.ones(batch_size, class_dim, device=x.device).bool().view(-1)
+            flag[new_index] = False
+            flag = flag.view(batch_size, class_dim)
+            new_data = torch.where(flag, x, torch.tensor(-1e8, device=x.device))
+            #new_data = new_data.view(batch_size, class_dim)
+            relative_data = torch.cat([min_relative_data, new_data], dim=1)
+            cand_data = relative_data[sample_mask]
+            target_label = torch.zeros(cand_data.size(0), dtype=torch.long, device=x.device)
+            loss2 = F.cross_entropy(cand_data, target_label)
+            loss = loss1 + self.gamma * loss2
+            self.loss1 = loss1.item()
+            self.loss2 = loss2.item()
+            return loss
+        else:
+            self.loss1 = loss1.item()
+            self.loss2 = 0
+            return loss1
 
 
 class RelativeLabelLoss(torch.nn.Module):
@@ -216,7 +220,10 @@ def test_relativelabelloss_v2():
     torch.manual_seed(123)
     torch.set_printoptions(6)
     x = torch.rand(4, 10, requires_grad=True)
-    y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
+    ## train
+    #y = torch.Tensor([[1,2,0,-1,-1], [1,-1,-1,-1,-1],[2,-1,-1,-1,-1],[3,2,1,0,4]])
+    ## valid
+    y = torch.Tensor([[1],[2],[2],[3]])
     import time
     start = time.time()
     loss = loss_fn(x, y)
@@ -256,5 +263,5 @@ def test_weightlabelloss():
 if __name__ == "__main__":
     #test_multilabelloss()
     #test_weightlabelloss()
-    test_relativelabelloss()
+    #test_relativelabelloss()
     test_relativelabelloss_v2()
