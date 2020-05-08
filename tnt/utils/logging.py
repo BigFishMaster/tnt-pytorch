@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
+import json
+from functools import partial
 
 import logging
 
@@ -22,3 +24,12 @@ def init_logger(log_file=None, log_file_level=logging.NOTSET):
         logger.addHandler(file_handler)
 
     return logger
+
+
+def beautify_info(info):
+    if hasattr(info, "__dict__"):
+        return json.dumps(info.__dict__, ensure_ascii=False, indent=4, default=str)
+    else:
+        return json.dumps(info, ensure_ascii=False, indent=4, default=str)
+
+

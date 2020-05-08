@@ -3,7 +3,7 @@ from collections import Counter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
 from torch.utils.data._utils.collate import default_collate
-from tnt.utils.logging import logger
+from tnt.utils.logging import logger, beautify_info
 from tnt.utils.collate_fn import multilabel_collate_fn
 from tnt.dataloaders.field import Field
 
@@ -32,7 +32,7 @@ class GeneralDataLoader(Dataset):
             return None
         self = cls(cfg, mode)
         logger.info("===mode-{}===\ncollate_fn: {}\nsampler:{}".format(
-            mode, self.collate_fn, self.sampler))
+            mode, beautify_info(self.collate_fn), beautify_info(self.sampler)))
         is_shuffle = True
         if mode != "train" or self.sampler is not None:
             is_shuffle = False
@@ -40,7 +40,7 @@ class GeneralDataLoader(Dataset):
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=is_shuffle,
                                  num_workers=self.num_workers, collate_fn=self.collate_fn,
                                  pin_memory=pin_memory, sampler=self.sampler, drop_last=(mode == "train"))
-        logger.info("data loader is: {}".format(data_loader.__dict__))
+        logger.info("data loader is: {}".format(beautify_info(data_loader)))
         return data_loader
 
     def __getitem__(self, index):

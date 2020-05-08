@@ -1,9 +1,10 @@
 import argparse
+import json
 import sys
 import os
 import yaml
 import tnt.opts as opts
-from tnt.utils.logging import init_logger, logger
+from tnt.utils.logging import init_logger, logger, beautify_info
 from tnt.model_builder import ModelBuilder
 from tnt.dataloaders.data_loader import GeneralDataLoader as GDLoader
 
@@ -100,7 +101,7 @@ def runner(config):
 def main():
     config = create_config()
     init_logger(config["log_file"])
-    logger.info("create configure successfully: {}".format(config))
+    logger.info("create configure successfully: {}".format(beautify_info(config)))
     runner(config)
 
 

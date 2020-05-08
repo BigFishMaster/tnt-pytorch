@@ -3,6 +3,7 @@ from munch import munchify
 from torchvision import transforms
 import torch
 from PIL import Image
+from tnt.utils.logging import beautify_info
 
 
 def _pil_interp(method):
@@ -133,14 +134,6 @@ class TransformImage(object):
         return tensor
 
     def __repr__(self):
-        return "\n===Attributes===:\n" \
-               "size:" + str(self.input_size) + "\n" + "range:" + str(self.input_range) + "\n" \
-               "color space:" + str(self.input_space) + "\n" \
-               "mean:" + str(self.mean) + "\n" + "std:" + str(self.std) + "\n" \
-               "===Operation===:\n" \
-               "scale:" + str(self.scale) + "\n" \
-               "random_crop:" + str(self.random_crop) + "\n" \
-               "random_hflip:" + str(self.random_hflip) + "\n" \
-               "random_vflip:" + str(self.random_vflip) + "\n"
+        return beautify_info(self)
 
 
