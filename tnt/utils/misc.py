@@ -1,5 +1,6 @@
 import torch
 
+
 class ToSpaceBGR(object):
 
     def __init__(self, is_bgr):

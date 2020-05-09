@@ -214,6 +214,7 @@ class ModelBuilder:
         config["data"]["opts"].transform_type = config["transform_type"]
         config["data"]["opts"].image_scale = config["image_scale"]
         config["data"]["opts"].preserve_aspect_ratio = config["preserve_aspect_ratio"] != 0
+        config["data"]["opts"].random_erase = config["disable_random_erase"] is False
 
     def init_state(self):
         self.min_valid_loss = 1.0e+10

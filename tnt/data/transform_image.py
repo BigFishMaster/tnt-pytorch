@@ -3,6 +3,7 @@ from munch import munchify
 from torchvision import transforms
 import torch
 from PIL import Image
+from tnt.data.random_erasing import RandomErasing
 from tnt.utils.logging import beautify_info
 
 
@@ -56,6 +57,9 @@ class TransformImage(object):
         self.five_crop = opts.five_crop
         self.ten_crop = opts.ten_crop
         self.is_train = random_crop or random_hflip or random_vflip
+
+        # random erasing will work when training only.
+        self.random_erase = self.is_train and opts.random_erase
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = opts.image_scale
@@ -126,6 +130,9 @@ class TransformImage(object):
         tfs.append(ToSpaceBGR(self.input_space=='BGR'))
         tfs.append(ToRange255(max(self.input_range)==255))
         tfs.append(transforms.Normalize(mean=self.mean, std=self.std))
+
+        if self.random_erase:
+            tfs.append(RandomErasing(0.5, device="cpu"))
 
         self.tf = transforms.Compose(tfs)
 
