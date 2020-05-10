@@ -62,6 +62,7 @@ def create_config():
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
     config["loss"]["gamma"] = config["relativelabelloss_gamma"]
+    config["loss"]["num_classes"] = config["data"]["num_classes"]
     num_epochs = config["global"]["num_epochs"]
     config["lr_strategy"]["num_epochs"] = num_epochs
     # accumlation steps will affect the steps number of each epoch.
@@ -85,6 +86,9 @@ def runner(config):
     is_train = "train" in config["data"]["mode"] and train_iter is not None
     is_valid = "valid" in config["data"]["mode"] and valid_iter is not None
     is_test = "test" in config["data"]["mode"] and test_iter is not None
+
+    # TODO: config may be updated in data loader, e.g.: samples_per_class
+    builder.update(config)
 
     if is_test:
         builder.run(test_iter=test_iter)

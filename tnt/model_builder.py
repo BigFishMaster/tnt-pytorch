@@ -86,11 +86,19 @@ class ModelImpl:
 
 class LossImpl:
     def __init__(self, loss_name, gpu, **kwargs):
-        loss = losses.__dict__[loss_name]()
+        if loss_name == "ClassBalancedLoss":
+            num_classes = kwargs["num_classes"]
+            loss_type = kwargs.get("loss_type", "focal")
+            beta = kwargs.get("beta", 0.9999)
+            gamma = kwargs.get("gamma", 0.5)
+            loss = losses.__dict__[loss_name](None, num_classes, beta, gamma, loss_type)
+        else:
+            loss = losses.__dict__[loss_name]()
         if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
             loss.gamma = kwargs.get("gamma", 0.2)
         loss.cuda(gpu)
         self.loss = loss
+        self.loss.name = loss_name
         self.gpu = gpu
 
     @classmethod
@@ -215,6 +223,11 @@ class ModelBuilder:
         config["data"]["opts"].image_scale = config["image_scale"]
         config["data"]["opts"].preserve_aspect_ratio = config["preserve_aspect_ratio"] != 0
         config["data"]["opts"].random_erase = config["disable_random_erase"] is False
+
+    def update(self, config):
+        if self.loss.name == "ClassBalancedLoss":
+            samples_per_class = config["data"]["samples_per_class"]
+            self.loss.update(samples_per_class)
 
     def init_state(self):
         self.min_valid_loss = 1.0e+10
