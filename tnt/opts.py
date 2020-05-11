@@ -50,5 +50,5 @@ def basic_opts(parser):
                         help="gamma of RelativeLabelLoss.")
     parser.add_argument("--use_first_label", default=False, action="store_true",
                         help="use first label for sampling weight.")
-    parser.add_argument("--disable_random_erase", default=False, action="store_true",
+    parser.add_argument("--enable_random_erase", default=False, action="store_true",
                         help="disable the random erasing transform mode.")

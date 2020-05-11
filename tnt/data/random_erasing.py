@@ -38,7 +38,7 @@ class RandomErasing:
     def __init__(
             self,
             probability=0.5, min_area=0.02, max_area=1/3, min_aspect=0.3, max_aspect=None,
-            mode='const', min_count=1, max_count=None, num_splits=0, device='cuda'):
+            mode="pixel", min_count=1, max_count=None, num_splits=0, device="cpu"):
         self.probability = probability
         self.min_area = min_area
         self.max_area = max_area
