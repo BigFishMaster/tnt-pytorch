@@ -53,7 +53,7 @@ class ClassBalancedLoss(torch.nn.Module):
             samples_per_class = [1] * num_classes
         effective_num = 1.0 - np.power(beta, samples_per_class)
         weights = (1.0 - beta) / np.array(effective_num)
-        self.constant_sum = 10.0
+        self.constant_sum = len(samples_per_class)
         weights = (weights / np.sum(weights) * self.constant_sum).astype(np.float32)
         self.class_weights = weights
         self.beta = beta
@@ -67,6 +67,7 @@ class ClassBalancedLoss(torch.nn.Module):
             return
         effective_num = 1.0 - np.power(self.beta, samples_per_class)
         weights = (1.0 - self.beta) / np.array(effective_num)
+        self.constant_sum = len(samples_per_class)
         weights = (weights / np.sum(weights) * self.constant_sum).astype(np.float32)
         self.class_weights = weights
 
