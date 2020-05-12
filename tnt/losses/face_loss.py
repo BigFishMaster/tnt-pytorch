@@ -6,9 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class ArcFace(nn.Module):
+class ArcFaceLoss(nn.Module):
 
-    def __init__(self, embedding_size, class_num, s=30.0, m=0.50):
+    def __init__(self, feature_size, num_classes, s=30.0, m=0.50):
         """ArcFace formula:
             cos(m + theta) = cos(m)cos(theta) - sin(m)sin(theta)
         Note that:
@@ -20,23 +20,24 @@ class ArcFace(nn.Module):
         (m + theta) go out of [0, Pi]
 
         Args:
-            embedding_size: usually 128, 256, 512 ...
-            class_num: num of people when training
+            feature_size: usually 128, 256, 512 ...
+            num_classes: num of people when training
             s: scale, see normface https://arxiv.org/abs/1704.06369
             m: margin, see SphereFace, CosFace, and ArcFace paper
         """
-        super(ArcFace, self).__init__()
-        self.in_features = embedding_size
-        self.out_features = class_num
+        super(ArcFaceLoss, self).__init__()
+        self.in_features = feature_size
+        self.out_features = num_classes
         self.s = s
         self.m = m
-        self.weight = nn.Parameter(torch.FloatTensor(class_num, embedding_size))
+        self.weight = nn.Parameter(torch.FloatTensor(self.out_features, self.in_features))
         nn.init.xavier_uniform_(self.weight)
 
         self.cos_m = math.cos(m)
         self.sin_m = math.sin(m)
         self.th = math.cos(math.pi - m)
         self.mm = math.sin(math.pi - m) * m
+        self.ce = nn.CrossEntropyLoss()
 
     def forward(self, feature, label):
         cosine = F.linear(F.normalize(feature), F.normalize(self.weight))
@@ -47,26 +48,28 @@ class ArcFace(nn.Module):
         output = cosine * 1.0  # make backward works
         batch_size = len(output)
         output[range(batch_size), label] = phi[range(batch_size), label]
-        return output * self.s
+        loss = self.ce(output * self.s, label)
+        return loss
 
 
-class CosFace(nn.Module):
+class CosFaceLoss(nn.Module):
 
-    def __init__(self, in_features, out_features, s=30.0, m=0.40):
+    def __init__(self, feature_size, num_classes, s=30.0, m=0.40):
         """
         Args:
-            embedding_size: usually 128, 256, 512 ...
-            class_num: num of people when training
+            feature_size: usually 128, 256, 512 ...
+            num_classes: num of people when training
             s: scale, see normface https://arxiv.org/abs/1704.06369
             m: margin, see SphereFace, CosFace, and ArcFace paper
         """
-        super(CosFace, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
+        super(CosFaceLoss, self).__init__()
+        self.in_features = feature_size
+        self.out_features = num_classes
         self.s = s
         self.m = m
-        self.weight = nn.Parameter(torch.FloatTensor(out_features, in_features))
+        self.weight = nn.Parameter(torch.FloatTensor(self.out_features, self.in_features))
         nn.init.xavier_uniform_(self.weight)
+        self.ce = nn.CrossEntropyLoss()
 
     def forward(self, feature, label):
         cosine = F.linear(F.normalize(feature), F.normalize(self.weight))
@@ -74,4 +77,5 @@ class CosFace(nn.Module):
         output = cosine * 1.0  # make backward works
         batch_size = len(output)
         output[range(batch_size), label] = phi[range(batch_size), label]
-        return output * self.s
+        loss = self.ce(output * self.s, label)
+        return loss

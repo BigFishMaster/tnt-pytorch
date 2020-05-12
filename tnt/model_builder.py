@@ -12,7 +12,7 @@ from tnt.optimizers.lr_strategy import LRStrategy
 from tnt.utils.logging import logger
 from tnt.utils.io import load_model_from_file, save_checkpoint, load_checkpoint
 from tnt.utils.statistics import Statistics
-from tnt.metric import Metric
+from tnt.utils.metric import Metric
 import tnt.pretrainedmodels as pretrainedmodels
 
 
@@ -80,7 +80,11 @@ class ModelImpl:
         model_name = config["name"]
         pretrained = config["pretrained"]
         gpu = config["gpu"]
-        num_classes = config["num_classes"]
+        loss_name = config.get("loss_name", None)
+        if loss_name in ["HCLoss", "CosFaceLoss", "ArcFaceLoss"]:
+            num_classes = config["num_features"]
+        else:
+            num_classes = config["num_classes"]
         self = cls(model_name, num_classes, pretrained, gpu)
         return self.model
 
@@ -92,11 +96,16 @@ class LossImpl:
             beta = kwargs.get("classbalancedloss_beta", 0.9999)
             gamma = kwargs.get("classbalancedloss_gamma", 0.5)
             loss = losses.__dict__[loss_name](None, beta, gamma, loss_type)
+        elif loss_name in ["CosFaceLoss", "ArcFaceLoss"]:
+            num_features = kwargs["num_features"]
+            num_classes = kwargs["num_classes"]
+            loss = losses.__dict__[loss_name](num_features, num_classes)
         else:
             loss = losses.__dict__[loss_name]()
         if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
             loss.gamma = kwargs.get("relativelabelloss_gamma", 0.2)
-        loss.cuda(gpu)
+        if torch.cuda.is_available():
+            loss = loss.cuda(gpu)
         self.loss = loss
         self.loss.name = loss_name
         self.gpu = gpu
@@ -111,7 +120,7 @@ class LossImpl:
 
 
 class OptImpl:
-    def __init__(self, model, config):
+    def __init__(self, model, config, others=None):
         optimizer_name = config["name"]
         optimizer = None
         # TODO: per-layer learning rates
@@ -131,12 +140,16 @@ class OptImpl:
         #        {'params': model.base.parameters()},
         #        {'params': model.classifier.parameters(), 'lr': 1e-3}
         #    ], lr=1e-2, momentum=0.9)
+        if others is None:
+            all_parameters = model.parameters()
+        else:
+            all_parameters = [{"params": model.parameters()}, {"params": others.parameters()}]
         if optimizer_name == "SGD":
             lr = config["lr"]
             momentum = config["momentum"]
             weight_decay = config["weight_decay"]
             optimizer = optimizers.__dict__[optimizer_name](
-                model.parameters(), lr,
+                all_parameters, lr,
                 momentum=momentum,
                 weight_decay=weight_decay
             )
@@ -145,7 +158,7 @@ class OptImpl:
             momentum = config["momentum"]
             weight_decay = config["weight_decay"]
             optimizer = optimizers.__dict__[optimizer_name](
-                model.parameters(), lr,
+                all_parameters, lr,
                 momentum=momentum,
                 weight_decay=weight_decay
             )
@@ -153,8 +166,8 @@ class OptImpl:
         self.optimizer = optimizer
 
     @classmethod
-    def from_config(cls, model, config):
-        return cls(model, config).optimizer
+    def from_config(cls, model, config, others=None):
+        return cls(model, config, others).optimizer
 
 
 class ModelBuilder:
@@ -165,7 +178,11 @@ class ModelBuilder:
             for m in self.model.modules():
                 if m.__class__.__name__ == "Linear":
                     torch.nn.init.constant_(m.bias, -np.log(config["loss"]["num_classes"] - 1))
-        self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
+        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss"]:
+            others = self.loss
+        else:
+            others = None
+        self.optimizer = OptImpl.from_config(self.model, config["optimizer"], others)
         # keep weights of last layer
         self.keep_last_layer = config["keep_last_layer"]
         # set bn momentum: useful when accumulating steps

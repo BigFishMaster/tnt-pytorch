@@ -4,6 +4,8 @@ def basic_opts(parser):
                         help="GPU id to use.")
     parser.add_argument("--num_classes", default=None, type=int,
                         help="number of classes to classify.")
+    parser.add_argument("--num_features", default=None, type=int,
+                        help="number of features for each sample.")
     parser.add_argument("--image_size", default=None, type=int,
                         help="the input image size: [3, image_size, image_size].")
     parser.add_argument("--batch_size", default=None, type=int,

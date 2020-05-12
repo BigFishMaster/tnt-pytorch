@@ -1,4 +1,5 @@
 from tnt.utils.misc import calc_topk_2d, calc_topk_multilabel
+from tnt.utils.misc import calc_metric_topk
 from tnt.utils.statistics import Statistics
 from functools import partial
 
@@ -13,6 +14,10 @@ class Metric:
         elif self.metric == "multilabel_topk":
             topk = config["acc_topk"]
             self.fn = partial(calc_topk_multilabel, topk=topk)
+            self.stats = partial(Statistics, topk=topk)
+        elif self.metric == "metric_topk":
+            topk = config["metric_topk"]
+            self.fn = partial(calc_metric_topk, topk=topk)
             self.stats = partial(Statistics, topk=topk)
         else:
             raise NotImplementedError("{} is not implemented.".format(self.metric))

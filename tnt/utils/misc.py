@@ -1,4 +1,6 @@
+import numpy as np
 import torch
+import torch.nn.functional as F
 
 
 class ToSpaceBGR(object):
@@ -68,4 +70,30 @@ def calc_topk_multilabel(output, target, topk=(1,)):
             topk_correct[flag] = 1
             correct_k = topk_correct.view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.item())
+        return res
+
+
+def calc_metric_topk(output, target, topk=(1,)):
+    with torch.no_grad():
+        batch_size, _ = output.shape
+        each_class = max(topk)
+        fea_norm = F.normalize(output)
+        cos_dist = torch.matmul(fea_norm, fea_norm.T)
+        indices = range(batch_size)
+        cos_dist[indices, indices] = -1
+        gt_num = each_class - 1
+        _, pred = cos_dist.topk(each_class, 1, True, True)
+        pred = pred.cpu().numpy()
+        starts = np.arange(batch_size // each_class).repeat(each_class) * each_class
+        correct = np.zeros((batch_size, each_class))
+        for i in range(batch_size):
+            start = starts[i]
+            rng = range(start, start + each_class)
+            bin = [(p in rng) for p in pred[i]]
+            correct[i] = bin
+
+        res = []
+        for k in topk:
+            correct_k = correct[:, :k].sum() * 1.0 / gt_num
+            res.append(correct_k)
         return res
