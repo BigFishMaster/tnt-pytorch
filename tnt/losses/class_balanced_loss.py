@@ -8,6 +8,7 @@ github: https://github.com/vandit15/Class-balanced-loss-pytorch/blob/master/clas
 import numpy as np
 import torch
 import torch.nn.functional as F
+from tnt.utils.logging import logger
 
 
 def focal_loss(logits, labels, alpha, gamma):
@@ -43,34 +44,38 @@ def focal_loss(logits, labels, alpha, gamma):
 
 
 class ClassBalancedLoss(torch.nn.Module):
-    def __init__(self, samples_per_class=None, num_classes=5000, beta=0.9999, gamma=0.5, loss_type="focal"):
+    def __init__(self, samples_per_class=None, beta=0.9999, gamma=0.5, loss_type="focal"):
         super(ClassBalancedLoss, self).__init__()
         if loss_type not in ["focal", "sigmoid", "softmax"]:
             loss_type = "focal"
         if samples_per_class is None:
+            num_classes = 5000
             samples_per_class = [1] * num_classes
         effective_num = 1.0 - np.power(beta, samples_per_class)
         weights = (1.0 - beta) / np.array(effective_num)
-        total_sum = 10.0
-        weights = (weights / np.sum(weights) * total_sum).astype(np.float32)
-
+        self.constant_sum = 10.0
+        weights = (weights / np.sum(weights) * self.constant_sum).astype(np.float32)
         self.class_weights = weights
-        self.num_classes = num_classes
         self.beta = beta
         self.gamma = gamma
         self.loss_type = loss_type
+        logger.info("ClassBalancedLoss: beta={}, gamma={}, loss_type={}, weights={}".format(
+                    self.beta, self.gamma, self.loss_type, self.class_weights))
 
     def update(self, samples_per_class):
         if samples_per_class is None:
             return
         effective_num = 1.0 - np.power(self.beta, samples_per_class)
         weights = (1.0 - self.beta) / np.array(effective_num)
-        weights = (weights / np.sum(weights) * self.num_classes).astype(np.float32)
-
+        weights = (weights / np.sum(weights) * self.constant_sum).astype(np.float32)
         self.class_weights = weights
 
+        logger.info("Updated ClassBalancedLoss: beta={}, gamma={}, loss_type={}, weights={}".format(
+            self.beta, self.gamma, self.loss_type, self.class_weights))
+
     def forward(self, x, y):
-        labels_one_hot = F.one_hot(y, self.num_classes).float()
+        _, num_classes = x.shape
+        labels_one_hot = F.one_hot(y, num_classes).float()
         weights = torch.tensor(self.class_weights, device=x.device).index_select(0, y)
         weights = weights.unsqueeze(1)
         if self.loss_type == "focal":
@@ -91,7 +96,7 @@ def test():
     y = torch.randint(0, 5, size=(batch_size,))
     samples_per_class = [1, 2, 3, 4, 5]
     loss_type = "focal"
-    loss_fn = ClassBalancedLoss(samples_per_class, num_classes, loss_type=loss_type)
+    loss_fn = ClassBalancedLoss(samples_per_class, loss_type=loss_type)
     loss = loss_fn(x, y)
     print(loss)
 
