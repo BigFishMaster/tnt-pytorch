@@ -2,6 +2,7 @@ import time
 import sys
 import os
 import torch
+import numpy as np
 from collections import OrderedDict
 from torch.utils.tensorboard import SummaryWriter
 import torch.nn as nn
@@ -160,6 +161,10 @@ class ModelBuilder:
     def __init__(self, config):
         self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
+        if self.loss.name == "ClassBalancedLoss":
+            for m in self.model.modules():
+                if m.__class__.__name__ == "Linear":
+                    torch.nn.init.constant_(m.bias, -np.log(config["loss"]["num_classes"] - 1))
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"])
         # keep weights of last layer
         self.keep_last_layer = config["keep_last_layer"]
