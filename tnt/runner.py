@@ -61,7 +61,7 @@ def create_config():
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["gpu"] = config["global"]["gpu"]
-    config["loss"]["gamma"] = config["relativelabelloss_gamma"]
+    config["loss"]["relativelabelloss_gamma"] = config["relativelabelloss_gamma"]
     config["loss"]["num_classes"] = config["data"]["num_classes"]
     num_epochs = config["global"]["num_epochs"]
     config["lr_strategy"]["num_epochs"] = num_epochs

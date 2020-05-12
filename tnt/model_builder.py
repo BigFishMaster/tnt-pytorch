@@ -88,13 +88,13 @@ class LossImpl:
     def __init__(self, loss_name, gpu, **kwargs):
         if loss_name == "ClassBalancedLoss":
             loss_type = kwargs.get("loss_type", "focal")
-            beta = kwargs.get("beta", 0.9999)
-            gamma = kwargs.get("gamma", 0.5)
+            beta = kwargs.get("classbalancedloss_beta", 0.9999)
+            gamma = kwargs.get("classbalancedloss_gamma", 0.5)
             loss = losses.__dict__[loss_name](None, beta, gamma, loss_type)
         else:
             loss = losses.__dict__[loss_name]()
         if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
-            loss.gamma = kwargs.get("gamma", 0.2)
+            loss.gamma = kwargs.get("relativelabelloss_gamma", 0.2)
         loss.cuda(gpu)
         self.loss = loss
         self.loss.name = loss_name
