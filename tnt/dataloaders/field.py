@@ -7,7 +7,7 @@ from tnt.utils.io import *
 __FORMAT__ = ["txt", "json"]
 __MODAL__ = ["image", "label", "multi_label", "image_weight", "label_weight"]
 # "none" is used to skip some fields.
-__TYPE__ = ["path", "npy", "int", "float", "none"]
+__TYPE__ = ["path", "path_box", "npy", "int", "float", "none"]
 
 
 def check(v, c):
