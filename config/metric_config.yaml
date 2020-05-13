@@ -1,4 +1,6 @@
 dataloader_type: metric_data
+preserve_aspect_ratio: 0
+box_extend: 0.1,0.3,0.1,0.1
 data:
   # In metric learning, num_features is used to initialize the last layer.
   num_features: 512

@@ -76,6 +76,40 @@ def load_image_from_path(path, data_prefix=None, transforms=None):
     return img
 
 
+def load_image_from_path_box(path_box, data_prefix=None, box_extend=None, transforms=None):
+    tts = path_box.split(",")
+    path = tts[0]
+    # min_x, min_y, max_x, max_y
+    box = [int(t) for t in tts[1:]]
+    if data_prefix is not None:
+        path = data_prefix + path
+    with open(path, "rb") as f:
+        with Image.open(f) as img:
+            img = img.convert("RGB")
+
+    img_w, img_h = img.size
+    min_x, min_y, max_x, max_y = box
+    if box_extend:
+        x1, y1, x2, y2 = [float(b) for b in box_extend.split(",")]
+        w = max_x - min_x
+        h = max_y - min_y
+        new_min_x = max(0, min_x - x1 * w)
+        new_max_x = min(img_w, max_x + x2 * w)
+        new_min_y = max(0, min_y - y1 * h)
+        new_max_y = min(img_h, max_y + y2 * h)
+    else:
+        new_min_x = max(0, min_x)
+        new_max_x = min(img_w, max_x)
+        new_min_y = max(0, min_y)
+        new_max_y = min(img_h, max_y)
+
+    img = img.crop([new_min_x, new_min_y, new_max_x, new_max_y])
+
+    if transforms:
+        img = transforms(img)
+    return img
+
+
 def load_image_from_npy(path, data_prefix=None, transforms=None):
     if data_prefix is not None:
         path = data_prefix + path

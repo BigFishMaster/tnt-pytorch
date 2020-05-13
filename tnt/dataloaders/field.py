@@ -55,6 +55,10 @@ class Field:
         for i, (m, t) in enumerate(zip(self.modals, self.types)):
             if m == "image" and t == "path":
                 fn = partial(load_image_from_path, data_prefix=data_prefix, transforms=self.transforms)
+            elif m == "image" and t == "path_box":
+                box_extend = opts.box_extend
+                fn = partial(load_image_from_path_box, data_prefix=data_prefix, box_extend=box_extend,
+                             transforms=self.transforms)
             elif m == "image" and t == "npy":
                 fn = partial(load_image_from_npy, data_prefix=data_prefix, transforms=self.transforms)
             elif m == "label" and t == "int":
