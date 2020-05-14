@@ -1,173 +1,15 @@
 import time
-import sys
 import os
 import torch
 import numpy as np
 from collections import OrderedDict
 from torch.utils.tensorboard import SummaryWriter
-import torch.nn as nn
-import tnt.losses as losses
-import tnt.optimizers as optimizers
 from tnt.optimizers.lr_strategy import LRStrategy
 from tnt.utils.logging import logger
-from tnt.utils.io import load_model_from_file, save_checkpoint, load_checkpoint
+from tnt.utils.io import save_checkpoint, load_checkpoint
 from tnt.utils.statistics import Statistics
 from tnt.utils.metric import Metric
-import tnt.pretrainedmodels as pretrainedmodels
-
-
-class ModelImpl:
-    def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None):
-        if os.path.exists(model_name_or_path):
-            model_file = model_name_or_path
-            model = load_model_from_file(model_file)
-            if pretrained:
-                state_dict = torch.load(pretrained)
-                model.load_state_dict(state_dict)
-        elif model_name_or_path in pretrainedmodels.model_names:
-            model_name = model_name_or_path
-            # input_space, input_size, input_range, mean, std
-            model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
-            logger.info("model pretrained: %s", pretrained)
-        else:
-            logger.exception("'{}' is not available.".format(model_name_or_path))
-            sys.exit()
-
-        # TODO: fix the parameters.
-        # e.g.
-        # for param in model.parameters():
-        #     param.requires_grad = False
-
-        # TODO: initialize the last_linear layer
-        # url: https://pytorch.org/docs/master/notes/autograd.html
-
-        # for efficientnet models:
-        last_layer_name = None
-        if hasattr(model, "classifier"):
-            last_layer_name = "classifier"
-            in_features = model.classifier.in_features
-            out_features = model.classifier.out_features
-            if out_features != num_classes:
-                model.classifier = nn.Linear(in_features, num_classes)
-        # for torchvision models
-        elif hasattr(model, "last_linear"):
-            last_layer_name = "last_linear"
-            in_features = model.last_linear.in_features
-            out_features = model.last_linear.out_features
-            if out_features != num_classes:
-                model.last_linear = nn.Linear(in_features, num_classes)
-        # for billionscale models
-        else:  #  model.fc
-            last_layer_name = "fc"
-            in_features = model.fc.in_features
-            out_features = model.fc.out_features
-            if out_features != num_classes:
-                model.fc = nn.Linear(in_features, num_classes)
-
-        if gpu is not None:
-            torch.cuda.set_device(gpu)
-            model = model.cuda(gpu)
-        else:
-            if torch.cuda.is_available():
-                model = torch.nn.DataParallel(model).cuda()
-
-        self.model = model
-        self.model.last_layer_name = last_layer_name
-        self.gpu = gpu
-
-    @classmethod
-    def from_config(cls, config):
-        model_name = config["name"]
-        pretrained = config["pretrained"]
-        gpu = config["gpu"]
-        loss_name = config.get("loss_name", None)
-        if loss_name in ["HCLoss", "CosFaceLoss", "ArcFaceLoss"]:
-            num_classes = config["num_features"]
-        else:
-            num_classes = config["num_classes"]
-        self = cls(model_name, num_classes, pretrained, gpu)
-        return self.model
-
-
-class LossImpl:
-    def __init__(self, loss_name, gpu, **kwargs):
-        if loss_name == "ClassBalancedLoss":
-            loss_type = kwargs.get("loss_type", "focal")
-            beta = kwargs.get("classbalancedloss_beta", 0.9999)
-            gamma = kwargs.get("classbalancedloss_gamma", 0.5)
-            loss = losses.__dict__[loss_name](None, beta, gamma, loss_type)
-        elif loss_name in ["CosFaceLoss", "ArcFaceLoss"]:
-            num_features = kwargs["num_features"]
-            num_classes = kwargs["num_classes"]
-            loss = losses.__dict__[loss_name](num_features, num_classes)
-        else:
-            loss = losses.__dict__[loss_name]()
-        if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
-            loss.gamma = kwargs.get("relativelabelloss_gamma", 0.2)
-        if torch.cuda.is_available():
-            loss = loss.cuda(gpu)
-        self.loss = loss
-        self.loss.name = loss_name
-        self.gpu = gpu
-
-    @classmethod
-    def from_config(cls, config):
-        loss_name = config["name"]
-        gpu = config["gpu"]
-        config.pop("name")
-        config.pop("gpu")
-        return cls(loss_name, gpu, **config).loss
-
-
-class OptImpl:
-    def __init__(self, model, config, others=None):
-        optimizer_name = config["name"]
-        optimizer = None
-        # TODO: per-layer learning rates
-        # url: https://pytorch.org/docs/stable/optim.html
-        # discuss: https://discuss.pytorch.org/t/how-to-perform-finetuning-in-pytorch/419/7
-        # e.g. 1:
-        #    ignored_params = list(map(id, model.fc.parameters()))
-        #    base_params = filter(lambda p: id(p) not in ignored_params,
-        #                         model.parameters())
-
-        #    optimizer = torch.optim.SGD([
-        #        {'params': base_params},
-        #        {'params': model.fc.parameters(), 'lr': opt.lr}
-        #    ], lr=opt.lr * 0.1, momentum=0.9)
-        # e.g. 2:
-        #    optim.SGD([
-        #        {'params': model.base.parameters()},
-        #        {'params': model.classifier.parameters(), 'lr': 1e-3}
-        #    ], lr=1e-2, momentum=0.9)
-        if others is None:
-            all_parameters = model.parameters()
-        else:
-            all_parameters = [{"params": model.parameters()}, {"params": others.parameters()}]
-        if optimizer_name == "SGD":
-            lr = config["lr"]
-            momentum = config["momentum"]
-            weight_decay = config["weight_decay"]
-            optimizer = optimizers.__dict__[optimizer_name](
-                all_parameters, lr,
-                momentum=momentum,
-                weight_decay=weight_decay
-            )
-        elif optimizer_name == "RMSprop":
-            lr = config["lr"]
-            momentum = config["momentum"]
-            weight_decay = config["weight_decay"]
-            optimizer = optimizers.__dict__[optimizer_name](
-                all_parameters, lr,
-                momentum=momentum,
-                weight_decay=weight_decay
-            )
-
-        self.optimizer = optimizer
-
-    @classmethod
-    def from_config(cls, model, config, others=None):
-        return cls(model, config, others).optimizer
+from tnt.impls import *
 
 
 class ModelBuilder:
@@ -178,11 +20,11 @@ class ModelBuilder:
             for m in self.model.modules():
                 if m.__class__.__name__ == "Linear":
                     torch.nn.init.constant_(m.bias, -np.log(config["loss"]["num_classes"] - 1))
-        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss"]:
-            others = self.loss
+        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss", "MetricCELoss"]:
+            self.others = self.loss
         else:
-            others = None
-        self.optimizer = OptImpl.from_config(self.model, config["optimizer"], others)
+            self.others = None
+        self.optimizer = OptImpl.from_config(self.model, config["optimizer"], self.others)
         # keep weights of last layer
         self.keep_last_layer = config["keep_last_layer"]
         # set bn momentum: useful when accumulating steps
@@ -269,6 +111,8 @@ class ModelBuilder:
             self.best_epoch = checkpoint.get("best_epoch", self.best_epoch)
             self.model.load_state_dict(checkpoint["state_dict"])
             self.optimizer.load_state_dict(checkpoint["optimizer"])
+            if self.others is not None:
+                self.loss.load_state_dict(checkpoint["loss_state_dict"])
             logger.info("model resume: %s", self.resume)
 
         if self.weight:
@@ -390,6 +234,9 @@ class ModelBuilder:
                     else:
                         target = target.cuda(self.gpu, non_blocking=True)
                 loss = self.loss(output, target)
+                metric_output = None
+                if isinstance(loss, tuple) and len(loss) == 2:
+                    loss, metric_output = loss
 
                 if mode == "train":
                     loss.backward()
@@ -408,8 +255,12 @@ class ModelBuilder:
                     out_loss.append(self.loss.loss2)
                 else:
                     out_loss = [loss.item()]
-                batch_stats = self.metric(output=output, target=target[-1] if isinstance(target, list) else target,
-                                          loss=out_loss)
+                if metric_output is not None:
+                    batch_stats = self.metric(output=metric_output, target=target[-1] if isinstance(target, list) else target,
+                                              loss=out_loss)
+                else:
+                    batch_stats = self.metric(output=output, target=target[-1] if isinstance(target, list) else target,
+                                              loss=out_loss)
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)
@@ -449,15 +300,19 @@ class ModelBuilder:
                     self.min_valid_loss = valid_loss
                 logger.info('the best model is epoch %d, with loss: %f.' % (self.best_epoch, self.min_valid_loss))
                 if epoch % self.save_epoch_steps == 0:
+                    # state_dict from model and optimizer
+                    state={"epoch": epoch + 1,
+                           "state_dict": self.model.state_dict(),
+                           "min_valid_loss": self.min_valid_loss,
+                           "best_epoch": self.best_epoch,
+                           "optimizer": self.optimizer.state_dict()}
+                    # check the state_dict from loss
+                    if self.others is not None:
+                        state.update({"loss_state_dict": self.loss.state_dict()})
                     save_checkpoint(
-                        state={"epoch": epoch + 1,
-                               "state_dict": self.model.state_dict(),
-                               "min_valid_loss": self.min_valid_loss,
-                               "best_epoch": self.best_epoch,
-                               "optimizer": self.optimizer.state_dict()},
+                        state=state,
                         filename=self.save_model_file.format(epoch+1),
-                        save_checkpoint_file=self.save_checkpoint_file
-                    )
+                        save_checkpoint_file=self.save_checkpoint_file)
             self.train_epochs += 1
 
         if self.tb_log:

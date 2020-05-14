@@ -5,3 +5,4 @@ from .losses import WeightLabelLoss
 from .losses import RelativeLabelLoss, RelativeLabelLossV2
 from .class_balanced_loss import ClassBalancedLoss
 from .face_loss import ArcFaceLoss, CosFaceLoss
+from .metric_loss import MetricCELoss

@@ -39,8 +39,12 @@ class ArcFaceLoss(nn.Module):
         self.mm = math.sin(math.pi - m) * m
         self.ce = nn.CrossEntropyLoss()
 
-    def forward(self, feature, label):
+    def output(self, feature):
         cosine = F.linear(F.normalize(feature), F.normalize(self.weight))
+        return cosine
+
+    def forward(self, feature, label):
+        cosine = self.output(feature)
         sine = ((1.0 - cosine.pow(2)).clamp(0, 1)).sqrt()
         phi = cosine * self.cos_m - sine * self.sin_m
         phi = torch.where(cosine > self.th, phi, cosine - self.mm)  # drop to CosFace
@@ -49,7 +53,7 @@ class ArcFaceLoss(nn.Module):
         batch_size = len(output)
         output[range(batch_size), label] = phi[range(batch_size), label]
         loss = self.ce(output * self.s, label)
-        return loss
+        return loss, cosine
 
 
 class CosFaceLoss(nn.Module):
@@ -71,11 +75,15 @@ class CosFaceLoss(nn.Module):
         nn.init.xavier_uniform_(self.weight)
         self.ce = nn.CrossEntropyLoss()
 
-    def forward(self, feature, label):
+    def output(self, feature):
         cosine = F.linear(F.normalize(feature), F.normalize(self.weight))
+        return cosine
+
+    def forward(self, feature, label):
+        cosine = self.output(feature)
         phi = cosine - self.m
         output = cosine * 1.0  # make backward works
         batch_size = len(output)
         output[range(batch_size), label] = phi[range(batch_size), label]
         loss = self.ce(output * self.s, label)
-        return loss
+        return loss, cosine
