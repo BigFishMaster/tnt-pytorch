@@ -72,7 +72,7 @@ class ModelImpl:
         pretrained = config["pretrained"]
         gpu = config["gpu"]
         loss_name = config.get("loss_name", None)
-        if loss_name in ["HCLoss", "CosFaceLoss", "ArcFaceLoss"]:
+        if loss_name in ["HCLoss", "CosFaceLoss", "ArcFaceLoss", "MetricCELoss"]:
             num_classes = config["num_features"]
         else:
             num_classes = config["num_classes"]
