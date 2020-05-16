@@ -1,3 +1,4 @@
+import sklearn.cluster.DBSCAN
 b = globals()
 b = [(k, v) for k, v in b.items() if "__" not in k and callable(v)]
 
