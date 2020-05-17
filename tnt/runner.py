@@ -77,6 +77,8 @@ def create_config():
     config["loss"]["relativelabelloss_gamma"] = config["relativelabelloss_gamma"]
     config["loss"]["num_classes"] = config["data"]["num_classes"]
     config["loss"]["num_features"] = config["data"]["num_features"]
+    config["loss"]["arcface_scale"] = config["arcface_scale"]
+    config["loss"]["arcface_margin"] = config["arcface_margin"]
     num_epochs = config["global"]["num_epochs"]
     config["lr_strategy"]["num_epochs"] = num_epochs
     # accumlation steps will affect the steps number of each epoch.

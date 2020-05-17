@@ -56,3 +56,7 @@ def basic_opts(parser):
                         help="disable the random erasing transform mode.")
     parser.add_argument("--box_extend", default=None, type=str,
                         help="extend the box of image in metric learning, e.g.: 0.1,0.1,0.1,0.1")
+    parser.add_argument("--arcface_scale", default=30, type=float,
+                        help="scale parameter for cosface and arcface.")
+    parser.add_argument("--arcface_margin", default=0.5, type=float,
+                        help="margin parameter for cosface and arcface.")

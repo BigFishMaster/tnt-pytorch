@@ -1,5 +1,6 @@
 import torch
 import tnt.losses as losses
+from tnt.utils.logging import logger
 
 
 class LossImpl:
@@ -9,7 +10,14 @@ class LossImpl:
             beta = kwargs.get("classbalancedloss_beta", 0.9999)
             gamma = kwargs.get("classbalancedloss_gamma", 0.5)
             loss = losses.__dict__[loss_name](None, beta, gamma, loss_type)
-        elif loss_name in ["CosFaceLoss", "ArcFaceLoss", "MetricCELoss"]:
+        elif loss_name in ["CosFaceLoss", "ArcFaceLoss"]:
+            num_features = kwargs["num_features"]
+            num_classes = kwargs["num_classes"]
+            scale = kwargs["arcface_scale"]
+            margin = kwargs["arcface_margin"]
+            logger.info("Initialize loss:{} with scale {} and margin {}".format(loss_name, scale, margin))
+            loss = losses.__dict__[loss_name](num_features, num_classes, scale, margin)
+        elif loss_name == "MetricCELoss":
             num_features = kwargs["num_features"]
             num_classes = kwargs["num_classes"]
             loss = losses.__dict__[loss_name](num_features, num_classes)
