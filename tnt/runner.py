@@ -79,6 +79,11 @@ def create_config():
     config["loss"]["num_features"] = config["data"]["num_features"]
     config["loss"]["arcface_scale"] = config["arcface_scale"]
     config["loss"]["arcface_margin"] = config["arcface_margin"]
+    config["loss"]["hc_beta"] = config["hc_beta"]
+    config["loss"]["hc_margin"] = config["hc_margin"]
+    config["loss"]["hc_sample_type"] = config["hc_sample_type"]
+    config["loss"]["hc_pos_nn"] = config["hc_pos_nn"]
+    config["loss"]["hc_each_class"] = config["hc_each_class"]
     num_epochs = config["global"]["num_epochs"]
     config["lr_strategy"]["num_epochs"] = num_epochs
     # accumlation steps will affect the steps number of each epoch.

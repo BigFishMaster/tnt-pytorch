@@ -60,3 +60,13 @@ def basic_opts(parser):
                         help="scale parameter for cosface and arcface.")
     parser.add_argument("--arcface_margin", default=0.5, type=float,
                         help="margin parameter for cosface and arcface.")
+    parser.add_argument("--hc_margin", default=1.0, type=float,
+                        help="margin for HCLoss.")
+    parser.add_argument("--hc_sample_type", default="ratio", type=str,
+                        help="sample type for HCLoss.")
+    parser.add_argument("--hc_each_class", default=5, type=int,
+                        help="samples per class for HCLoss.")
+    parser.add_argument("--hc_beta", default=10000.0, type=float,
+                        help="beta for HCLoss.")
+    parser.add_argument("--hc_pos_nn", default=1.0, type=float,
+                        help="pos_nn for HCLoss.")
