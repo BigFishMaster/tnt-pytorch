@@ -43,7 +43,7 @@ class MetricDataLoader(Dataset):
         return len(self.data_list)
 
     def _create_sampler(self, cfg, mode):
-        if mode != "train":
+        if mode == "test":
             return None
         label2index = {}
         for i, data in enumerate(self.data_list):
@@ -56,8 +56,12 @@ class MetricDataLoader(Dataset):
             label2index[label].append(i)
 
         each_class = cfg.get("each_class") or 5
-        num_samples = cfg.get("num_samples") or (len(label2index) * each_class)
-        batch_size = cfg.get("batch_size") or (10 * each_class)
+        if mode == "train":
+            num_samples = cfg.get("num_samples") or (len(label2index) * each_class)
+            batch_size = cfg.get("batch_size") or (20 * each_class)
+        else:  # valid
+            num_samples = len(label2index) * each_class
+            batch_size = 20 * each_class
         if batch_size % each_class != 0:
             raise ValueError("batch_size {} can not be divided by each_class {}.".format(batch_size, each_class))
 
