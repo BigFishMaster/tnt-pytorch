@@ -72,7 +72,7 @@ class HCLoss(nn.Module):
         dist = aa - 2*ab + bb
         return dist
 
-    def forward(self, feature):
+    def forward(self, feature, label):
         batch_size, dim = feature.shape
         distance = self._euclidean(feature)
         loss = 0
