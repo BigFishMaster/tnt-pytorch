@@ -175,6 +175,8 @@ class ModelBuilder:
 
     def _run_epoch(self, data_iter, mode="test"):
         if mode == "train":
+            if self.others is not None:
+                self.others.train()
             self.model.train()
             if self.fix_bn:
                 def set_bn_eval(m):
@@ -203,6 +205,8 @@ class ModelBuilder:
                 # the gradients of the scale and bias are not trained.
                 last_bn.train()
         else:
+            if self.others is not None:
+                self.others.eval()
             self.model.eval()
         start = time.time()
         report_stats = Statistics()

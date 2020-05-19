@@ -17,7 +17,7 @@ data:
     num_samples: 100
   format: txt
   modals: [image, label]
-  types: [path_box, int]
+  types: [path, int]
 
 global:
   gpu: null
