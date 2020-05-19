@@ -53,7 +53,7 @@ def basic_opts(parser):
     parser.add_argument("--use_first_label", default=False, action="store_true",
                         help="use first label for sampling weight.")
     parser.add_argument("--enable_random_erase", default=False, action="store_true",
-                        help="disable the random erasing transform mode.")
+                        help="enable the random erasing transform mode.")
     parser.add_argument("--box_extend", default=None, type=str,
                         help="extend the box of image in metric learning, e.g.: 0.1,0.1,0.1,0.1")
     parser.add_argument("--arcface_scale", default=30, type=float,
@@ -70,3 +70,7 @@ def basic_opts(parser):
                         help="beta for HCLoss.")
     parser.add_argument("--hc_pos_nn", default=1.0, type=float,
                         help="pos_nn for HCLoss.")
+    parser.add_argument("--disable_random_crop", default=False, action="store_true",
+                        help="disable the random crop transform mode.")
+    parser.add_argument("--disable_random_hflip", default=False, action="store_true",
+                        help="disable the random horizontal flip transform mode.")

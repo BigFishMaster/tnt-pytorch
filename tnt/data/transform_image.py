@@ -64,9 +64,8 @@ class TransformImage(object):
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = opts.image_scale
         self.preserve_aspect_ratio = opts.preserve_aspect_ratio
-        self.random_crop = random_crop
-        self.random_hflip = random_hflip
-        self.random_vflip = random_vflip
+        self.random_crop = opts.random_crop if self.is_train else False
+        self.random_hflip = opts.random_hflip if self.is_train else False
 
         if self.is_train and (self.five_crop or self.ten_crop):
             raise ValueError("Can not use five or ten crops when training.")

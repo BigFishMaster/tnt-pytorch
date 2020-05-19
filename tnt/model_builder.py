@@ -86,6 +86,8 @@ class ModelBuilder:
         config["data"]["opts"].image_scale = config["image_scale"]
         config["data"]["opts"].preserve_aspect_ratio = config["preserve_aspect_ratio"] != 0
         config["data"]["opts"].random_erase = config["enable_random_erase"]
+        config["data"]["opts"].random_crop = config["disable_random_crop"] is False
+        config["data"]["opts"].random_hflip = config["disable_random_hflip"] is False
         config["data"]["opts"].box_extend = config["box_extend"]
 
     def update(self, config):
