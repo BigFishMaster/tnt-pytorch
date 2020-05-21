@@ -42,7 +42,8 @@ def load_checkpoint(checkpoint_file, gpu=None):
         checkpoint_file = open(checkpoint_file, "r").readline().strip()
     if os.path.isfile(checkpoint_file):
         if gpu is None:
-            checkpoint = torch.load(checkpoint_file)
+            loc = None if torch.cuda.is_available() else torch.device("cpu")
+            checkpoint = torch.load(checkpoint_file, map_location=loc)
         else:
             loc = "cuda:{}".format(gpu)
             checkpoint = torch.load(checkpoint_file, map_location=loc)

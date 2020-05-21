@@ -127,7 +127,7 @@ class ModelBuilder:
             checkpoint = load_checkpoint(self.weight, self.gpu)
             if checkpoint is None:
                 raise ValueError("weight can not be loaded from: {}".format(self.weight))
-            state_dict = checkpoint["state_dict"]
+            state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
             logger.info("keep the weights of last layer:{}".format(self.keep_last_layer))
             if self.keep_last_layer:
                 self.model.load_state_dict(state_dict)
