@@ -1,4 +1,5 @@
 from __future__ import print_function, division, absolute_import
+from .facenet import face_model_names
 from .billion_scale_models import model_names as bs_model_names
 from .efficientnet.efficientnet import model_names as ef_model_names
 from .resnest.resnest import model_names as resnest_model_names
@@ -44,4 +45,4 @@ for settings in all_settings:
 model_names += bs_model_names
 model_names += ef_model_names
 model_names += resnest_model_names
-
+model_names += face_model_names

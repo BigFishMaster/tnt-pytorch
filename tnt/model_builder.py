@@ -10,11 +10,17 @@ from tnt.utils.io import save_checkpoint, load_checkpoint
 from tnt.utils.statistics import Statistics
 from tnt.utils.metric import Metric
 from tnt.impls import *
+from tnt.pretrainedmodels.models.facenet import face_model_names
 
 
 class ModelBuilder:
     def __init__(self, config):
-        self.model = ModelImpl.from_config(config["model"])
+        if config["model"]["name"] in face_model_names:
+            input_size = config["image_size"] if config["image_size"] is not None else 112
+            config["model"]["input_size"] = [input_size, input_size]
+            self.model = FaceModelImpl.from_config(config["model"])
+        else:
+            self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
         if self.loss.name == "ClassBalancedLoss":
             for m in self.model.modules():
