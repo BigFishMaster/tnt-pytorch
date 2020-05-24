@@ -73,6 +73,8 @@ class KNNSampler(Sampler):
         self.dim = 512
         self.update_steps = 10
         self.steps = 0
+        self.print_steps = self.update_steps * 50
+        self.p_steps = 0
         self.features = torch.zeros(self.num_labels, self.dim)
         self.losses = torch.zeros(self.num_labels)
 
@@ -91,6 +93,8 @@ class KNNSampler(Sampler):
         model.eval()
         with torch.no_grad():
             for label, batch in enumerate(self.dataloader):
+                if label % 100 == 0:
+                    logger.info("building knn sampler:", label)
                 input, target = batch
                 output = model(input)
                 feature = output.mean(0)
@@ -125,9 +129,12 @@ class KNNSampler(Sampler):
                 distance = torch.matmul(self.features, self.features.t())
                 _, self.knn = distance.topk(self.knn_num, 1, True, True)
                 self.knn = self.knn.tolist()
+
+            self.p_steps = (self.p_steps + 1) % self.print_steps
+            if self.p_steps == 0:
                 s, p = self.losses.topk(10, 0, True, True)
-                logger.info("KNN Tree is updated. "
-                            "top-10 loss with score: {}. label: {}.".format(s, p))
+                logger.info("Hard Sampling with top-k label: {}.".format(p))
+                logger.info("Hard Sampling with top-k score: {}.".format(s))
 
     def _select(self, label, output, depth=0):
         if depth >= self.sampling_depth:

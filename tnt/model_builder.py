@@ -97,7 +97,7 @@ class ModelBuilder:
         config["data"]["opts"].box_extend = config["box_extend"]
 
         # hard sampling
-        self.hard_sampling = config["data"]["sampler"]["strategy"] in ["knn_sampler"]
+        self.hard_sampling = config["data"]["sampler"].get("strategy") in ["knn_sampler"]
         logger.info("whether hard sampling: {}".format(self.hard_sampling))
 
     def update(self, config):
