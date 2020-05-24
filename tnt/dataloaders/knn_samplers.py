@@ -59,14 +59,20 @@ class KNNDataLoader(Dataset):
 
 
 class KNNSampler(Sampler):
-    def __init__(self, label2index, each_class, num_samples, filename, data_prefix):
+    def __init__(self, label2index, batch_size, each_class, num_samples, filename, data_prefix):
         self.num_labels = len(label2index)
         self.label2index = label2index
         # sampling: totally num_samples and each_class for one label.
+        if num_samples % batch_size != 0:
+            raise ValueError("In KNNSampler, num_samples {} must be divided by batch_size {}.".format(
+                num_samples, batch_size))
         self.each_class = each_class
         self.num_samples = num_samples
         self.sampling_depth = 2
         self.target_num = num_samples // each_class
+        self.target_each_batch = batch_size // each_class
+        logger.info("num_samples: {}, each_class: {}, target_num: {}, target_each_class:{}".format(
+            self.num_samples, self.each_class, self.target_num, self.target_each_batch))
         # TODO: include itself.
         self.knn = None
         self.knn_num = 8
@@ -140,24 +146,31 @@ class KNNSampler(Sampler):
         if depth >= self.sampling_depth:
             return
         knn_labels = [l for l in self.knn[label] if l != label and l not in output]
-        selected_length = min(self.target_num-len(output), len(knn_labels))
+        selected_length = min(self.target_each_batch-len(output), len(knn_labels))
         selected_labels = knn_labels[:selected_length]
         output.update(selected_labels)
         for lab in selected_labels:
-            if len(output) >= self.target_num:
+            if len(output) >= self.target_each_batch:
                 break
             self._select(lab, output, depth+1)
 
     def _sample(self):
-        cand_labels = torch.multinomial(self.losses, self.target_num).tolist()
-        output = Counter()
-        for label in cand_labels:
-            if len(output) >= self.target_num:
-                break
-            if label not in output:
-                output.update([label])
-            self._select(label, output, 0)
-        selected_labels = list(output.keys())
+        selected_labels = []
+        loops = self.target_num // self.target_each_batch
+        for i in range(loops):
+            cand_labels = torch.multinomial(self.losses, self.target_each_batch).tolist()
+            output = Counter()
+            for label in cand_labels:
+                if len(output) >= self.target_each_batch:
+                    break
+                if label not in output:
+                    output.update([label])
+                self._select(label, output, 0)
+            batch_labels = list(output.keys())
+            selected_labels.extend(batch_labels[:self.target_each_batch])
+        if len(selected_labels) != self.target_num:
+            raise ValueError("selected_labels {} is not equal to target_num {}.".format(
+                selected_labels, self.target_num))
         return selected_labels
 
     def __iter__(self):
