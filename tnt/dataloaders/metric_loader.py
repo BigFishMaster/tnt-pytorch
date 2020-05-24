@@ -3,6 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 from tnt.utils.logging import logger, beautify_info
 from tnt.dataloaders.field import Field
 from tnt.dataloaders.metric_samplers import MetricDataSampler
+from tnt.dataloaders.knn_samplers import KNNSampler
 
 
 class MetricDataLoader(Dataset):
@@ -13,6 +14,10 @@ class MetricDataLoader(Dataset):
         self.data_list = np.array(self.data_list, dtype=np.string_)
         logger.info("In mode {}, data_list has length of {}.".format(mode, len(self.data_list)))
 
+
+        # for hard sampling
+        self.filename = filename
+        self.data_prefix = cfg["data_prefix"]
         # field processor
         self._field = Field.from_cfg(cfg, mode=mode)
 
@@ -65,4 +70,8 @@ class MetricDataLoader(Dataset):
         if batch_size % each_class != 0:
             raise ValueError("batch_size {} can not be divided by each_class {}.".format(batch_size, each_class))
 
-        return MetricDataSampler(label2index, each_class, num_samples)
+        strategy = cfg.get("strategy")
+        if strategy == "knn_sampler" and mode == "train":
+            return KNNSampler(label2index, each_class, num_samples, self.filename, self.data_prefix)
+        else:
+            return MetricDataSampler(label2index, each_class, num_samples)

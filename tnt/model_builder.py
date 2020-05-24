@@ -96,6 +96,10 @@ class ModelBuilder:
         config["data"]["opts"].random_hflip = config["disable_random_hflip"] is False
         config["data"]["opts"].box_extend = config["box_extend"]
 
+        # hard sampling
+        self.hard_sampling = config["data"]["sampler"]["strategy"] in ["knn_sampler"]
+        logger.info("whether hard sampling: {}".format(self.hard_sampling))
+
     def update(self, config):
         if self.loss.name == "ClassBalancedLoss":
             samples_per_class = config["data"]["samples_per_class"]
@@ -251,6 +255,9 @@ class ModelBuilder:
                     loss, metric_output = loss
 
                 if mode == "train":
+                    if self.hard_sampling:
+                        with torch.no_grad():
+                            data_iter.sampler.update(output, target)
                     loss.backward()
                     if (step+1) % self.accum_steps == 0:
                         self.lr_strategy.set_lr(optimizer=self.optimizer,
@@ -299,6 +306,9 @@ class ModelBuilder:
         if valid_iter and not train_iter:
             self._run_epoch(valid_iter, mode="valid")
             return
+
+        if self.hard_sampling:
+            train_iter.sampler.build(self.model)
 
         for epoch in range(self.start_epoch, self.num_epochs):
             self._run_epoch(train_iter, mode="train")

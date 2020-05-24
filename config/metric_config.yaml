@@ -11,6 +11,7 @@ data:
   test: null
   data_prefix: ../tests/
   sampler:
+    strategy: knn_sampler
     batch_size: 20
     each_class: 5
     num_workers: 0
