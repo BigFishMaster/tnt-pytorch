@@ -113,7 +113,7 @@ class KNNSampler(Sampler):
             distance = torch.matmul(self.features, self.features.t())
             _, self.knn = distance.topk(self.knn_num, 1, True, True)
             self.knn = self.knn.tolist()
-            logger.info("initialize knn: {}".format(beautify_info(self.knn)))
+            logger.info("initialize knn: {}".format(beautify_info(self.knn[:10])))
 
     def update(self, features, labels):
         with torch.no_grad():
@@ -176,7 +176,7 @@ class KNNSampler(Sampler):
     def __iter__(self):
         selected_labels = self._sample()
         if self.p_steps == 0:
-            logger.info("selected labels: {}".format(beautify_info(selected_labels)))
+            logger.info("selected labels: {}".format(beautify_info(selected_labels[:self.target_each_batch])))
         sample_list = []
         for sl in selected_labels:
             indices = self.label2index[sl]
