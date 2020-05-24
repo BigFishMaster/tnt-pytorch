@@ -2,7 +2,7 @@ import numpy as np
 from collections import Counter
 import torch
 import torch.nn.functional as F
-from tnt.utils.logging import logger
+from tnt.utils.logging import logger, beautify_info
 from torch.utils.data import Sampler
 from torch.utils.data import Dataset, DataLoader
 from munch import munchify
@@ -107,7 +107,7 @@ class KNNSampler(Sampler):
             distance = torch.matmul(self.features, self.features.t())
             _, self.knn = distance.topk(self.knn_num, 1, True, True)
             self.knn = self.knn.tolist()
-            logger.info("initialize knn: {}".format(self.knn))
+            logger.info("initialize knn: {}".format(beautify_info(self.knn)))
 
     def update(self, features, labels):
         with torch.no_grad():
