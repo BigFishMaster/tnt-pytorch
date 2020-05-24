@@ -73,7 +73,7 @@ class KNNSampler(Sampler):
         self.dim = 512
         self.update_steps = 10
         self.steps = 0
-        self.print_steps = self.update_steps * 50
+        self.print_steps = self.update_steps * 10
         self.p_steps = 0
         self.features = torch.zeros(self.num_labels, self.dim)
         self.losses = torch.zeros(self.num_labels)
@@ -162,6 +162,8 @@ class KNNSampler(Sampler):
 
     def __iter__(self):
         selected_labels = self._sample()
+        if self.p_steps == 0:
+            logger.info("selected labels: {}".format(beautify_info(selected_labels)))
         sample_list = []
         for sl in selected_labels:
             indices = self.label2index[sl]
