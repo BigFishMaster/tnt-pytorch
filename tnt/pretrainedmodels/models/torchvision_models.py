@@ -185,6 +185,7 @@ class DenseNet(nn.Module):
         super(DenseNet, self).__init__()
         self.features = model.features
         self.last_linear = model.classifier
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
 
         self.input_space = getattr(model, 'input_space', 'RGB')
         self.input_size = getattr(model, 'input_size', [3, 224, 224])
@@ -194,7 +195,8 @@ class DenseNet(nn.Module):
 
     def logits(self, features):
         x = F.relu(features, inplace=True)
-        x = F.avg_pool2d(x, kernel_size=7, stride=1)
+        #x = F.avg_pool2d(x, kernel_size=7, stride=1)
+        x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.last_linear(x)
         return x
