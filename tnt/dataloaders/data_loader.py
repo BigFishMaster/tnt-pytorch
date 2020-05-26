@@ -129,12 +129,8 @@ class GeneralDataLoader(Dataset):
             sorted_weights = sorted(class_weights.items(), key=lambda x: x[0])
             class_weights = [s[1] for s in sorted_weights]
             self.samples_per_class = class_weights
-            class_weights = 1.0 / np.array(class_weights)
-            class_weights = class_weights[sample_labels]
-            weights = sample_weights * class_weights
-            sampler = WeightedRandomSampler(weights=weights, num_samples=num_samples,
+            sampler = WeightedRandomSampler(weights=sample_weights, num_samples=num_samples,
                                             replacement=replacement)
-            del weights
             del sample_weights
             del sample_labels
             del class_weights
