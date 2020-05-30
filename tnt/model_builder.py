@@ -278,7 +278,13 @@ class ModelBuilder:
                     batch_stats = self.metric(output=metric_output, target=target[-1] if isinstance(target, list) else target,
                                               loss=out_loss)
                 else:
-                    batch_stats = self.metric(output=output, target=target[-1] if isinstance(target, list) else target,
+                    if isinstance(target, list):
+                        target_output = target[-1]
+                    elif isinstance(target, tuple):
+                        target_output = target[0]
+                    else:
+                        target_output = target
+                    batch_stats = self.metric(output=output, target=target_output,
                                               loss=out_loss)
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:

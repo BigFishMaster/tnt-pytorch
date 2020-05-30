@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
 from torch.utils.data._utils.collate import default_collate
 from tnt.utils.logging import logger, beautify_info
-from tnt.utils.collate_fn import multilabel_collate_fn
+from tnt.utils.collate_fn import *
 from tnt.dataloaders.field import Field
 
 
@@ -67,6 +67,8 @@ class GeneralDataLoader(Dataset):
         strategy = cfg.get("strategy")
         if strategy == "multilabel_balanced":
             return multilabel_collate_fn
+        elif strategy == "pseudo_balanced":
+            return pseudolabel_collate_fn
         else:
             return default_collate
 
@@ -79,12 +81,15 @@ class GeneralDataLoader(Dataset):
         replacement = cfg.get("replacement") or False
         use_first_label = cfg.get("use_first_label") or False
         sample_labels = []
-        if strategy == "class_balanced":
+        if strategy in ["class_balanced", "pseudo_balanced"]:
             for i, data in enumerate(self.data_list):
                 if i % 10000 == 0:
                     logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
-                label = self._field(data.decode(), last=True)
-                sample_labels.append(label[0])
+                ## support: path label
+                ##label = self._field(data.decode(), last=True)
+                ## also support: path l1:s1,l2:s2
+                label = int(data.decode().strip().split()[-1].split(":")[0])
+                sample_labels.append(label)
             logger.info("creating sampler totally: %d", len(self.data_list))
 
             class_weights = Counter()

@@ -145,6 +145,36 @@ class MultiLabelLoss(torch.nn.Module):
         return loss
 
 
+class PseudoLabelLoss(torch.nn.Module):
+
+    def __init__(self):
+        super(PseudoLabelLoss, self).__init__()
+
+    def forward(self, x, y):
+        """
+        Args:
+            x: batch_size x class_dim
+            y: batch_size x target_dim; please ignore -1.
+
+        Returns:
+
+        """
+        labels, scores = y
+        logsoftmax = F.log_softmax(x, 1)
+        batch_size, class_dim = x.shape
+        _, target_dim = labels.shape
+        loss = 0
+        for i in range(batch_size):
+            data = logsoftmax[i]
+            index = labels[i]
+            score = scores[i]
+            pred = torch.gather(data, 0, index)
+            loss0 = -torch.sum(pred * score)
+            loss += loss0
+        loss = loss / batch_size
+        return loss
+
+
 class WeightLabelLoss(torch.nn.Module):
 
     def __init__(self):
@@ -261,8 +291,17 @@ def test_weightlabelloss():
     print(loss)
 
 
+def test_pseudolabelloss():
+    loss_fn = PseudoLabelLoss()
+    x = torch.rand(4, 10)
+    y = [torch.randint(0, 10, (4, 3)), torch.rand(4, 3)]
+    loss = loss_fn(x, y)
+    print(loss)
+
+
 if __name__ == "__main__":
     #test_multilabelloss()
     #test_weightlabelloss()
-    test_relativelabelloss()
-    test_relativelabelloss_v2()
+    #test_relativelabelloss()
+    #test_relativelabelloss_v2()
+    test_pseudolabelloss()

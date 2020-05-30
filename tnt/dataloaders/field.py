@@ -7,7 +7,7 @@ from tnt.utils.io import *
 __FORMAT__ = ["txt", "json"]
 __MODAL__ = ["image", "label", "multi_label", "image_weight", "label_weight"]
 # "none" is used to skip some fields.
-__TYPE__ = ["path", "path_box", "npy", "int", "float", "none"]
+__TYPE__ = ["path", "path_box", "npy", "int", "float", "pseudo", "none"]
 
 
 def check(v, c):
@@ -74,6 +74,14 @@ class Field:
             elif m == "image_weight" and t == "float":
                 fn = lambda x: float(x)
                 self._ignore_fields.append(i)
+            elif m == "label" and t == "pseudo":
+                # e.g.: path l1:s1,l2:s2,l2:s3
+                def _func(x):
+                    tts = [t.split(":") for t in x.split(",")]
+                    labels = [int(l) for l, _ in tts]
+                    scores = [float(s) for _, s in tts]
+                    return labels, scores
+                fn = _func
             elif t == "none":
                 fn = None
             else:

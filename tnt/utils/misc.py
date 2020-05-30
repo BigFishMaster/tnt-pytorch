@@ -37,6 +37,9 @@ def calc_topk_2d(output, target, topk=(1,)):
         pred = pred.t()
         if isinstance(target, list):
             target = target[-1]
+        elif isinstance(target, tuple):
+            # pseudolabel, [label, score]
+            target = target[0]
         if target.dim() == 2:
             target = target[:, 0]
         correct = pred.eq(target.view(1, -1).expand_as(pred))
