@@ -278,7 +278,9 @@ class ModelBuilder:
                     batch_stats = self.metric(output=metric_output, target=target[-1] if isinstance(target, list) else target,
                                               loss=out_loss)
                 else:
-                    if isinstance(target, list):
+                    if self.loss.name == "PseudoLabelLoss":
+                        target_output = target[0]
+                    elif isinstance(target, list):
                         target_output = target[-1]
                     elif isinstance(target, tuple):
                         target_output = target[0]
