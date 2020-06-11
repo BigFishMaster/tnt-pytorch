@@ -1,10 +1,7 @@
-import os
 import sys
 import torch
-from tnt.utils.io import load_model_from_file
 from tnt.utils.logging import logger
 import tnt.pretrainedmodels as pretrainedmodels
-import torch.nn as nn
 
 
 class FaceModelImpl:
@@ -33,6 +30,6 @@ class FaceModelImpl:
         model_name = config["name"]
         gpu = config["gpu"]
         num_features = config["num_features"]
-        input_size = config["input_size"]
+        input_size = [config["image_size"], config["image_size"]]
         self = cls(model_name, num_features, input_size, gpu)
         return self.model

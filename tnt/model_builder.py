@@ -11,25 +11,26 @@ from tnt.utils.statistics import Statistics
 from tnt.utils.metric import Metric
 from tnt.impls import *
 from tnt.pretrainedmodels.models.facenet import face_model_names
+import tnt.losses as losses
 
 
 class ModelBuilder:
     def __init__(self, config):
         if config["model"]["name"] in face_model_names:
-            input_size = config["image_size"] if config["image_size"] is not None else 112
-            config["model"]["input_size"] = [input_size, input_size]
             self.model = FaceModelImpl.from_config(config["model"])
         else:
             self.model = ModelImpl.from_config(config["model"])
         self.loss = LossImpl.from_config(config["loss"])
-        if self.loss.name == "ClassBalancedLoss":
+        if self.loss.name in losses.initialized_losses:
             for m in self.model.modules():
                 if m.__class__.__name__ == "Linear":
                     torch.nn.init.constant_(m.bias, -np.log(config["loss"]["num_classes"] - 1))
-        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss", "MetricCELoss"]:
+        if self.loss.name in losses.parameterized_losses:
+            # Parameters need to be optimized
             self.others = self.loss
         else:
             self.others = None
+        logger.info("whether other parameters need to be optimized: {}".format(self.others))
         self.optimizer = OptImpl.from_config(self.model, config["optimizer"], self.others)
         # keep weights of last layer
         self.keep_last_layer = config["keep_last_layer"]
@@ -41,34 +42,26 @@ class ModelBuilder:
                 if classname.find('BatchNorm') != -1:
                     m.momentum = bn_momentum
             self.model.apply(set_bn_momentum)
-            logger.info("BN layers use bn_momentum:{}".format(bn_momentum))
+        logger.info("BN layers use bn_momentum: {}".format(bn_momentum))
         # clip gradients
         self.clip_norm = config["optimizer"].get("clip_norm", None)
-        if self.clip_norm is not None and self.clip_norm > 0:
-            logger.info("gradients will be clipped to clip_norm:{}".format(self.clip_norm))
-        # fix BatchNorm
-        # it can be used when the performance is affected by batch size.
-        self.fix_bn = config["optimizer"].get("fix_bn", False)
-        self.fix_res = config["optimizer"].get("fix_res", False)
+        logger.info("gradients will be clipped to clip_norm: {}".format(self.clip_norm))
+        # fix BatchNorm: it can be used when the performance is affected by batch size.
+        self.fix_bn = config["model"].get("fix_bn", False)
+        logger.info("fix batchnorm: {}".format(self.fix_bn))
+        # fix Resolution: FixRes
+        self.fix_res = config["model"].get("fix_res", False)
+        logger.info("fix resolution: {}".format(self.fix_res))
         # tensorboard logging
         self.tb_log = config["tb_log"]
-        logger.info("fix batchnorm:{}".format(self.fix_bn))
+        logger.info("whether to output tensorboard log: {}".format(self.tb_log))
         # accumulate steps
-        self.accum_steps = config["optimizer"].get("accum_steps", 1)
-        self.accum_steps = 1 if self.accum_steps is None else self.accum_steps
-        if self.accum_steps is not None and self.accum_steps > 0:
-            logger.info("gradients will be accumulated with steps:{}".format(self.accum_steps))
+        self.accum_steps = config["optimizer"]["accum_steps"]
+        logger.info("gradients will be accumulated with steps: {}".format(self.accum_steps))
         # output test result to file
-        out_cfg = config["data"].get("output")
         self.fout = None
-        if out_cfg is None:
-            self.out_mode = "top5"
-            self.out_file = config["global"]["log_dir"] + "test.output"
-        else:
-            self.out_mode = out_cfg.get("mode", "top5")
-            self.out_file = out_cfg.get("file")
-            if self.out_file is None:
-                self.out_file = config["global"]["log_dir"] + "test.output"
+        self.out_mode = config["data"]["output"]["mode"]
+        self.out_file = config["data"]["output"]["file"]
 
         self.metric = Metric(config["metric"])
         self.lr_strategy = LRStrategy(config["lr_strategy"])
@@ -76,26 +69,18 @@ class ModelBuilder:
         self.init_global(config["global"])
         self.init_state()
 
-        # used to initialize tranforms (mean, std, color space, image size, range etc.)
+        # update transform opts (mean, std, color space, image size, range etc.)
         # Note: the model is DataParallel.module
-        config["data"]["opts"] = self.model.module if hasattr(self.model, "module") \
-                                 else self.model
-        if config["image_size"] and hasattr(config["data"]["opts"], "input_size"):
-            config["data"]["opts"].input_size = [3, config["image_size"], config["image_size"]]
-
+        model_opts = self.model.module if hasattr(self.model, "module") else self.model
+        config["data"]["opts"].input_space = model_opts.input_space
+        config["data"]["opts"].input_range = model_opts.input_range
+        config["data"]["opts"].mean = model_opts.mean
+        config["data"]["opts"].std = model_opts.std
+        config["data"]["opts"].input_size = [3, config["image_size"], config["image_size"]] \
+            if config["image_size"] else model_opts.input_size
         # multi-crops when testing.
         self.is_multicrop = config["five_crop"] or config["ten_crop"]
-        config["data"]["opts"].five_crop = config["five_crop"]
-        config["data"]["opts"].ten_crop = config["ten_crop"]
-        # image transforms
-        config["data"]["opts"].transform_type = config["transform_type"]
-        config["data"]["opts"].image_scale = config["image_scale"]
-        config["data"]["opts"].preserve_aspect_ratio = config["preserve_aspect_ratio"] != 0
-        config["data"]["opts"].random_erase = config["enable_random_erase"]
-        config["data"]["opts"].random_crop = config["disable_random_crop"] is False
-        config["data"]["opts"].random_hflip = config["disable_random_hflip"] is False
-        config["data"]["opts"].box_extend = config["box_extend"]
-
+        logger.info("whether multi-crop: {}".format(self.is_multicrop))
         # hard sampling
         self.hard_sampling = config["data"]["sampler"].get("strategy") in ["knn_sampler"]
         logger.info("whether hard sampling: {}".format(self.hard_sampling))
@@ -132,7 +117,7 @@ class ModelBuilder:
             if checkpoint is None:
                 raise ValueError("weight can not be loaded from: {}".format(self.weight))
             state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
-            logger.info("keep the weights of last layer:{}".format(self.keep_last_layer))
+            logger.info("keep the weights of last layer: {}".format(self.keep_last_layer))
             if self.keep_last_layer:
                 self.model.load_state_dict(state_dict)
             else:
@@ -216,6 +201,8 @@ class ModelBuilder:
                 # train the running mean and running var of the last BN.
                 # the gradients of the scale and bias are not trained.
                 last_bn.train()
+            else:
+                pass
         else:
             if self.others is not None:
                 self.others.eval()
@@ -269,25 +256,24 @@ class ModelBuilder:
                         self.optimizer.zero_grad()
 
                 if hasattr(self.loss, "loss1") and hasattr(self.loss, "loss2"):
-                    out_loss = [loss.item()]
-                    out_loss.append(self.loss.loss1)
-                    out_loss.append(self.loss.loss2)
+                    out_loss = [loss.item(), self.loss.loss1, self.loss.loss2]
                 else:
                     out_loss = [loss.item()]
                 if metric_output is not None:
-                    batch_stats = self.metric(output=metric_output, target=target[-1] if isinstance(target, list) else target,
+                    batch_stats = self.metric(output=metric_output,
+                                              target=target[-1] if isinstance(target, list) else target,
                                               loss=out_loss)
                 else:
-                    if self.loss.name == "PseudoLabelLoss":
+                    if self.loss.name == "PseudoLabelLoss" or isinstance(target, tuple):
+                        # pseduo label: tuple (torch-1.4) or list (torch-1.1)
                         target_output = target[0]
                     elif isinstance(target, list):
+                        # weighted label: score, label
                         target_output = target[-1]
-                    elif isinstance(target, tuple):
-                        target_output = target[0]
                     else:
+                        # single label
                         target_output = target
-                    batch_stats = self.metric(output=output, target=target_output,
-                                              loss=out_loss)
+                    batch_stats = self.metric(output=output, target=target_output, loss=out_loss)
                 report_stats.update(batch_stats)
                 if (step+1) % self.report_interval == 0:
                     learning_rate = self.lr_strategy.get_lr(self.optimizer)

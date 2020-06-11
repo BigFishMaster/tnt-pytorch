@@ -4,8 +4,8 @@ data:
   num_classes: 2
   mode: [train, valid]
   # relative or absolute path to train, valid or test file
-  train: ../tests/data/full_set/valid.txt
-  valid: ../tests/data/full_set/mini_valid.txt
+  train: ../tests/data/full_set/train.txt
+  valid: ../tests/data/full_set/valid.txt
   test: null
   # prefix path for each sample
   data_prefix: ../tests/data/full_set/
