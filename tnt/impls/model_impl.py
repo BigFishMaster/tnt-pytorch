@@ -48,12 +48,15 @@ class ModelImpl:
             if out_features != num_classes:
                 model.last_linear = nn.Linear(in_features, num_classes)
         # for billionscale models
-        else:  #  model.fc
+        elif hasattr(model, "fc"):  #  model.fc
             last_layer_name = "fc"
             in_features = model.fc.in_features
             out_features = model.fc.out_features
             if out_features != num_classes:
                 model.fc = nn.Linear(in_features, num_classes)
+        # for squeezenet (TODO: not suppport pretrained imagenet weights.)
+        else:
+            last_layer_name = None
 
         if gpu is not None:
             torch.cuda.set_device(gpu)
