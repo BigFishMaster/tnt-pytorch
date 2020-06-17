@@ -454,6 +454,7 @@ class SqueezeNet(nn.Module):
         x = self.last_conv(x)
         x = self.relu(x)
         x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
         return x
 
     def forward(self, input):
