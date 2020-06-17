@@ -54,9 +54,13 @@ class ModelImpl:
             out_features = model.fc.out_features
             if out_features != num_classes:
                 model.fc = nn.Linear(in_features, num_classes)
-        # for squeezenet (TODO: not suppport pretrained imagenet weights.)
-        else:
-            last_layer_name = None
+        # for squeezenet
+        elif hasattr(model, "last_conv"):
+            last_layer_name = "last_conv"
+            in_features = model.last_conv.in_channels
+            out_features = model.last_conv.out_channels
+            if out_features != num_classes:
+                model.last_conv = nn.Conv2d(in_features, num_classes, kernel_size=1)
 
         if gpu is not None:
             torch.cuda.set_device(gpu)
