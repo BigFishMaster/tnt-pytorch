@@ -5,15 +5,14 @@ from tnt.utils.logging import logger, init_logger
 
 
 class MetricCELoss(nn.Module):
+    """ Cross-entropy loss for metric learning with a specified feature size.
+    In addition, there exists a ReLU layer to pre-process the input feature.
 
+    Args:
+        feature_size (int): usually 128, 256, 512 ...
+        num_classes (int): num of classes when training
+    """
     def __init__(self, feature_size, num_classes):
-        """
-        Args:
-            feature_size: usually 128, 256, 512 ...
-            num_classes: num of people when training
-            s: scale, see normface https://arxiv.org/abs/1704.06369
-            m: margin, see SphereFace, CosFace, and ArcFace paper
-        """
         super(MetricCELoss, self).__init__()
         self.in_features = feature_size
         self.out_features = num_classes
@@ -22,17 +21,51 @@ class MetricCELoss(nn.Module):
         self.ce = nn.CrossEntropyLoss()
 
     def output(self, feature):
+        """ Output the logit.
+
+        Args:
+            feature (:obj:`torch.FloatTensor`): image features from previous layers.
+
+        Returns:
+            :obj:`torch.FloatTensor`: logit
+        """
         output = F.linear(F.relu(feature), self.weight)
         return output
 
     def forward(self, feature, label):
+        """ Calculate MetricCE loss.
+
+        Args:
+            feature (:obj:`torch.FloatTensor`): image features from previous layers.
+            label (:obj:`torch.LongTensor`): image labels.
+
+        Returns:
+            (:obj:`torch.FloatTensor`, :obj:`torch.FloatTensor`):
+
+            * loss: MetricCE loss over the batch.
+            * logit: logit output after ReLU.
+        """
         output = self.output(feature)
         loss = self.ce(output, label)
         return loss, output
 
 
 class HCLoss(nn.Module):
+    """ The implementation of Loss in the paper:"Large Scale Strongly Supervised Ensemble Metric Learning,
+    with Applications to Face Verification and Retrieval"(https://arxiv.org/abs/1212.6094)
 
+    Args:
+        each_class (int): sample number of each class.
+        beta (float): loss scale. Default: ``10000.0``
+        pos_nn (float): the ratio of nearest neighbour positive samples. Default: ``1.0``.
+        sample_type (float): negative sampling strategy. Default: ``ratio``. It can be
+
+            * ``original``: :math:`neg\_num`
+            * ``addative``: :math:`pos\_thres + margin`
+            * ``multiply``: :math:`pos\_thres * margin`
+            * ``ratio``: :math:`neg\_num * margin`
+        margin: the margin to determine the negative samples. Default: ``1.0``.
+    """
     def __init__(self, each_class, beta=10000.0, pos_nn=1.0, sample_type="ratio", margin=1.0):
         super(HCLoss, self).__init__()
         self.each_class = each_class
@@ -73,6 +106,15 @@ class HCLoss(nn.Module):
         return dist
 
     def forward(self, feature, label):
+        """ Calculate HC loss.
+
+        Args:
+            feature (:obj:`torch.FloatTensor`): image features from previous layers.
+            label (:obj:`torch.LongTensor`): image labels.
+
+        Returns:
+            :obj:`torch.FloatTensor`: The MetricCE loss over the batch.
+        """
         batch_size, dim = feature.shape
         distance = self._euclidean(feature)
         loss = 0

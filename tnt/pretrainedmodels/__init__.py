@@ -68,3 +68,6 @@ from .models.senet import se_resnext50_32x4d
 from .models.senet import se_resnext101_32x4d
 from .models.pnasnet import pnasnet5large
 from .models.polynet import polynet
+
+__all__ = model_names
+##print("model_names:", model_names)

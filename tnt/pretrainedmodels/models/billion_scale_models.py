@@ -83,8 +83,8 @@ def _resnet(url, depth, pretrained, progress, **kwargs):
 
 # -------------- semi-supervised models ----------------
 def resnet18_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNet-18 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNet-18 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -94,8 +94,8 @@ def resnet18_ssl(progress=True, **kwargs):
 
 
 def resnet50_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNet-50 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNet-50 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr
     """
@@ -105,8 +105,8 @@ def resnet50_ssl(progress=True, **kwargs):
 
 
 def resnext50_32x4d_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNeXt-50 32x4 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNeXt-50 32x4 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -118,8 +118,8 @@ def resnext50_32x4d_ssl(progress=True, **kwargs):
 
 
 def resnext101_32x4d_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNeXt-101 32x4 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNeXt-101 32x4 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -131,8 +131,8 @@ def resnext101_32x4d_ssl(progress=True, **kwargs):
 
 
 def resnext101_32x8d_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNeXt-101 32x8 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNeXt-101 32x8 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -144,8 +144,8 @@ def resnext101_32x8d_ssl(progress=True, **kwargs):
 
 
 def resnext101_32x16d_ssl(progress=True, **kwargs):
-    """Constructs a semi-supervised ResNeXt-101 32x16 model pre-trained on YFCC100M dataset and finetuned on ImageNet
-    `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-supervised ResNeXt-101 32x16 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -158,9 +158,8 @@ def resnext101_32x16d_ssl(progress=True, **kwargs):
 
 # -------------- semi-weakly supervised models ----------------
 def resnet18_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised Resnet-18 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised Resnet-18 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -170,9 +169,8 @@ def resnet18_swsl(progress=True, **kwargs):
 
 
 def resnet50_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised ResNet-50 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised ResNet-50 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr
     """
@@ -182,9 +180,8 @@ def resnet50_swsl(progress=True, **kwargs):
 
 
 def resnext50_32x4d_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised ResNeXt-50 32x4 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised ResNeXt-50 32x4 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -196,9 +193,8 @@ def resnext50_32x4d_swsl(progress=True, **kwargs):
 
 
 def resnext101_32x4d_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised ResNeXt-101 32x4 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised ResNeXt-101 32x4 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -210,9 +206,8 @@ def resnext101_32x4d_swsl(progress=True, **kwargs):
 
 
 def resnext101_32x8d_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised ResNeXt-101 32x8 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised ResNeXt-101 32x8 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """
@@ -224,9 +219,8 @@ def resnext101_32x8d_swsl(progress=True, **kwargs):
 
 
 def resnext101_32x16d_swsl(progress=True, **kwargs):
-    """Constructs a semi-weakly supervised ResNeXt-101 32x16 model pre-trained on 1B weakly supervised
-       image dataset and finetuned on ImageNet.
-       `"Billion-scale Semi-Supervised Learning for Image Classification" <https://arxiv.org/abs/1905.00546>`_
+    """Constructs a semi-weakly supervised ResNeXt-101 32x16 model.
+
     Args:
         progress (bool): If True, displays a progress bar of the download to stderr.
     """

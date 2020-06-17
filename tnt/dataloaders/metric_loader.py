@@ -7,6 +7,13 @@ from tnt.dataloaders.knn_samplers import KNNSampler
 
 
 class MetricDataLoader(Dataset):
+    """ Initialize the MetricDataLoader.
+
+    Args:
+        cfg (dict): a configuration for the initialization.
+        mode (string): the mode of data loader. it can be ``"train"``, ``"valid"`` or
+            ``"test"``. Default: ``"train"``.
+    """
     def __init__(self, cfg, mode="train"):
         self.num_classes = cfg["num_classes"]
         filename = cfg[mode]
@@ -30,6 +37,17 @@ class MetricDataLoader(Dataset):
 
     @classmethod
     def from_config(cls, cfg, mode="train"):
+        """ Initialize the data loader from the configuration.
+
+        Args:
+            cls (:obj:`torch.utils.data.Dataset`): The :class:`~tnt.dataloaders.MetricDataLoader` class.
+            cfg (dict): a configuration for the initialization.
+            mode (string): the mode of data loader. it can be ``"train"``, ``"valid"`` or
+                ``"test"``. Default: ``"train"``.
+
+        Returns:
+            :obj:`torch.utils.data.DataLoader`: a ``dataloader`` instance.
+        """
         if (mode not in cfg) or (not cfg[mode]):
             return None
         self = cls(cfg, mode)

@@ -33,6 +33,11 @@ strategies = {k: v for k, v in globals().items() if "__" not in k and callable(v
 
 
 class LRStrategy:
+    """ Initialize the learning rate strategy.
+
+    Args:
+        config (dict): a configuration to initialize LR strategy.
+    """
     def __init__(self, config):
         st = config["name"]
         if st not in strategies:
@@ -64,9 +69,24 @@ class LRStrategy:
             logger.exception("Unexcepted strategy: {}".format(st))
 
     def set_lr(self, optimizer, epoch, step):
+        """ Set the learning rate.
+
+        Args:
+            optimizer (:obj:`torch.nn.Module`): an ``optimizer`` instance.
+            epoch (int): the current epoch.
+            step (int): the current step.
+        """
         self.fn(optimizer=optimizer, epoch=epoch, step=step)
 
     def get_lr(self, optimizer):
+        """ Get the learning rate.
+
+        Args:
+            optimizer (:obj:`torch.nn.Module`): an ``optimizer`` instance.
+
+        Returns:
+            float: the current learning rate.
+        """
         lr = optimizer.param_groups[0]["lr"]
         return lr
 

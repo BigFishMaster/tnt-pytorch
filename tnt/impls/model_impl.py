@@ -8,6 +8,23 @@ import torch.nn as nn
 
 
 class ModelImpl:
+    """ Initialize a classification model with model name and number of classes.
+
+    Args:
+        model_name_or_path (string): it can be a model name or a model path:
+
+            * If it's a model name: the corresponding model will be selected from our pretrained model list.
+              See :class:`~tnt.pretrainedmodels` for details.
+            * If it's a model path: the model file pointed by the path should include a :func:`model()` function which
+              implement a model class and return the instance.
+        num_classes (int): the number of classes.
+        pretrained (bool|string|None): whether to use pretrained models. It can be
+            ``"imagenet"``, ``True`` or ``None``. Default: ``None``.
+        gpu (int|None): specified ``gpu`` to run the model. It can be the ``gpu id`` for single-gpu training,
+            or ``None`` for multi-gpu (all-available) training. Use `CUDA_VISIBLE_DEVICES` to
+            control gpu number and ids. E.g., ``export CUDA_VISIBLE_DEVICES=0,2`` to run the model
+            on gpu id ``0`` and ``2``. Default: ``None``.
+    """
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
@@ -68,6 +85,16 @@ class ModelImpl:
 
     @classmethod
     def from_config(cls, config):
+        """ Initialize the model from the configuration.
+
+        Args:
+            cls (:obj:`tnt.impls.ModelImpl`): The :class:`~tnt.impls.ModelImpl` class to instantiate.
+            config (dict): a configuration to initialize the model.
+
+        Returns:
+            :obj:`torch.nn.Module`: an initialized model.
+
+        """
         model_name = config["name"]
         pretrained = config["pretrained"]
         gpu = config["gpu"]

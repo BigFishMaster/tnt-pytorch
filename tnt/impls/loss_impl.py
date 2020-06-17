@@ -5,6 +5,13 @@ from tnt.utils.logging import logger
 
 class LossImpl:
     def __init__(self, loss_name, gpu, **kwargs):
+        """ Initialize a loss instance based on ``loss_name`` and ``gpu``
+
+        Args:
+            loss_name (string): the name of loss to implement.
+            gpu (int): specified gpu to calculate the loss.
+            **kwargs (dict): dictionary of hyper-parameters for the initialization.
+        """
         if loss_name == "ClassBalancedLoss":
             loss_type = kwargs.get("loss_type", "focal")
             beta = kwargs.get("classbalancedloss_beta", 0.9999)
@@ -40,6 +47,15 @@ class LossImpl:
 
     @classmethod
     def from_config(cls, config):
+        """ Initialize the loss from the configuration.
+
+        Args:
+            cls (:obj:`tnt.impls.LossImpl`): The :class:`~tnt.impls.LossImpl` class to instantiate.
+            config (dict): a configuration to initialize the loss.
+
+        Returns:
+            :obj:`torch.nn.Module`: a ``loss`` instance.
+        """
         loss_name = config["name"]
         gpu = config["gpu"]
         config.pop("name")

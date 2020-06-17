@@ -2,7 +2,17 @@ import tnt.optimizers as optimizers
 
 
 class OptImpl:
+    """
+    An implemented Class of optimizers.
+    """
     def __init__(self, model, config, others=None):
+        """ Initialize the optimizer.
+
+        Args:
+            model : a ``torch.nn.Module`` instance with parameters to be optimized.
+            config : a configuration to initialize the optimizer.
+            others : other parameters need to be optimized.
+        """
         optimizer_name = config["name"]
         optimizer = None
         # TODO: per-layer learning rates
@@ -49,4 +59,15 @@ class OptImpl:
 
     @classmethod
     def from_config(cls, model, config, others=None):
+        """ Initialize the optimizer from the configuration.
+
+        Args:
+            cls : The ``OptImpl`` class to instantiate.
+            model : a ``torch.nn.Module`` instance with parameters to be optimized.
+            config : a configuration to initialize the optimizer.
+            others : other parameters need to be optimized.
+
+        Returns:
+            :obj:`torch.nn.Module`: an ``optimizer`` instance.
+        """
         return cls(model, config, others).optimizer

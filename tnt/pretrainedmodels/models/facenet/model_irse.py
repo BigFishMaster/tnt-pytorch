@@ -201,7 +201,7 @@ class Backbone(Module):
 
 
 def IR_50(input_size, num_features):
-    """Constructs a ir-50 model.
+    """Constructs an IR-50 model.
     """
     model = Backbone(input_size, 50, num_features, 'ir')
 
@@ -209,7 +209,7 @@ def IR_50(input_size, num_features):
 
 
 def IR_101(input_size, num_features):
-    """Constructs a ir-101 model.
+    """Constructs an IR-101 model.
     """
     model = Backbone(input_size, 100, num_features, 'ir')
 
@@ -217,7 +217,7 @@ def IR_101(input_size, num_features):
 
 
 def IR_152(input_size, num_features):
-    """Constructs a ir-152 model.
+    """Constructs an IR-152 model.
     """
     model = Backbone(input_size, 152, num_features, 'ir')
 
@@ -225,7 +225,7 @@ def IR_152(input_size, num_features):
 
 
 def IR_SE_50(input_size, num_features):
-    """Constructs a ir_se-50 model.
+    """Constructs an IR-SE-50 model.
     """
     model = Backbone(input_size, 50, num_features, 'ir_se')
 
@@ -233,7 +233,7 @@ def IR_SE_50(input_size, num_features):
 
 
 def IR_SE_101(input_size, num_features):
-    """Constructs a ir_se-101 model.
+    """Constructs an IR-SE-101 model.
     """
     model = Backbone(input_size, 100, num_features, 'ir_se')
 
@@ -241,7 +241,7 @@ def IR_SE_101(input_size, num_features):
 
 
 def IR_SE_152(input_size, num_features):
-    """Constructs a ir_se-152 model.
+    """Constructs an IR-SE-152 model.
     """
     model = Backbone(input_size, 152, num_features, 'ir_se')
 

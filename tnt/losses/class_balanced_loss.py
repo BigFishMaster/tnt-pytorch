@@ -44,6 +44,20 @@ def focal_loss(logits, labels, alpha, gamma):
 
 
 class ClassBalancedLoss(torch.nn.Module):
+    """Initialize ClassBalancedLoss loss.
+    The formulation:
+
+    :math:`loss = w_t*\log(p_t)`
+
+    where :math:`w_t` is a pre-defined class weight for target label :math:`t`.
+
+    Args:
+        samples_per_class (np.array|list[float]): the number of samples of each class. Default: ``None``.
+        beta (float): scale parameter for class weight. Default: ``0.9999``.
+        gamma (float): scale parameter for focal loss. Default: ``0.5``.
+        loss_type (string): loss type. It can be ``"focal"``, ``"sigmoid"`` or ``"softmax"``.
+            Default: ``"focal"``.
+    """
     def __init__(self, samples_per_class=None, beta=0.9999, gamma=0.5, loss_type="focal"):
         super(ClassBalancedLoss, self).__init__()
         if loss_type not in ["focal", "sigmoid", "softmax"]:
@@ -63,6 +77,12 @@ class ClassBalancedLoss(torch.nn.Module):
                     self.beta, self.gamma, self.loss_type, self.class_weights))
 
     def update(self, samples_per_class):
+        """Update the :attr:`class_weight` by the model builder after initialization of a data loader.
+
+        Args:
+            samples_per_class (np.array|list[float]): the number of samples of each class. Default: ``None``.
+
+        """
         if samples_per_class is None:
             return
         effective_num = 1.0 - np.power(self.beta, samples_per_class)
@@ -75,6 +95,16 @@ class ClassBalancedLoss(torch.nn.Module):
             self.beta, self.gamma, self.loss_type, self.class_weights))
 
     def forward(self, x, y):
+        """ Calculate the ClassBalancedLoss loss.
+
+        Args:
+            x (:obj:`torch.FloatTensor`): the input image features.
+            y (:obj:`torch.LongTensor`): the input image labels.
+
+        Returns:
+            :obj:`torch.FloatTensor`: the final loss.
+
+        """
         _, num_classes = x.shape
         labels_one_hot = F.one_hot(y, num_classes).float()
         weights = torch.tensor(self.class_weights, device=x.device).index_select(0, y)

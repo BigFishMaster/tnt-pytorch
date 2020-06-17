@@ -3,7 +3,18 @@ import torch.nn.functional as F
 
 
 class RelativeLabelLossV2(torch.nn.Module):
+    """ Initialize RelativeLabelLoss without loops.
+    The formulation:
 
+    :math:`loss = loss_{target} + \gamma * loss_{relative}`
+
+    Args:
+        gamma (float): the weight of the loss for relative labels. Default: ``0.2``.
+
+    Attributes:
+        loss1: the first loss for target labels and will be updated after each forward. Default: ``0``.
+        loss2: the second loss for relative labels and will be updated after each forward. Default: ``0``.
+    """
     def __init__(self, gamma=0.2):
         super(RelativeLabelLossV2, self).__init__()
         self.ce = torch.nn.CrossEntropyLoss()
@@ -12,6 +23,15 @@ class RelativeLabelLossV2(torch.nn.Module):
         self.loss2 = 0
 
     def forward(self, x, y):
+        """ Calculate the RelativeLabelLossV2 loss.
+
+        Args:
+            x (:obj:`torch.FloatTensor`): the input image features
+            y (:obj:`torch.LongTensor`): the input image labels.
+
+        Returns:
+            :obj:`torch.FloatTensor`: the total loss for target and relative labels.
+        """
         # loss1
         y = y.long()
         y_mask = (y != -1).view(-1)
@@ -56,7 +76,18 @@ class RelativeLabelLossV2(torch.nn.Module):
 
 
 class RelativeLabelLoss(torch.nn.Module):
+    """ Initialize RelativeLabelLoss with loops.
+    The formulation:
 
+    :math:`loss = loss_{target} + \gamma * loss_{relative}`
+
+    Args:
+        gamma (float): the weight of the loss for relative labels. Default: ``0.2``.
+
+    Attributes:
+        loss1: the first loss for target labels and will be updated after each forward. Default: ``0``.
+        loss2: the second loss for relative labels and will be updated after each forward. Default: ``0``.
+    """
     def __init__(self, gamma=0.2):
         super(RelativeLabelLoss, self).__init__()
         self.ce = torch.nn.CrossEntropyLoss()
@@ -65,13 +96,14 @@ class RelativeLabelLoss(torch.nn.Module):
         self.loss2 = 0
 
     def forward(self, x, y):
-        """
+        """ Calculate the RelativeLabelLoss loss.
+
         Args:
-            x: batch_size x class_dim
-            y: batch_size x target_dim
+            x (:obj:`torch.FloatTensor`): the input image features
+            y (:obj:`torch.LongTensor`): the input image labels.
 
         Returns:
-
+            :obj:`torch.FloatTensor`: the total loss for target and relative labels.
         """
         y = y.long()
         target = y[:, 0]
@@ -113,21 +145,26 @@ class RelativeLabelLoss(torch.nn.Module):
 
 
 class MultiLabelLoss(torch.nn.Module):
+    """ Initialize MultiLabelLoss.
+    The formulation:
 
+    :math:`loss = -\sum_t I(t)*\log(p_t)`
+
+    where :math:`I(t)` is Ising function: it equals to 1 if :math:`t` is one of the target labels else 0.
+    """
     def __init__(self):
         super(MultiLabelLoss, self).__init__()
 
     def forward(self, x, y):
-        """
+        """ Calculate the MultiLabelLoss loss.
+
         Args:
-            x: batch_size x class_dim
-            y: batch_size x target_dim; please ignore -1.
+            x (:obj:`torch.FloatTensor`): the input image features
+            y (:obj:`torch.LongTensor`): the input image labels.
 
         Returns:
-
+            :obj:`torch.FloatTensor`: the final loss.
         """
-        #x = torch.rand(10, 100)
-        #y = torch.rand(10, 4)
         logsoftmax = F.log_softmax(x, 1)
         batch_size, class_dim = x.shape
         _, target_dim = y.shape
@@ -146,18 +183,28 @@ class MultiLabelLoss(torch.nn.Module):
 
 
 class PseudoLabelLoss(torch.nn.Module):
+    """ Initialize PseudoLabelLoss with multiple labels.
+    The formulation:
 
+    :math:`loss = -\sum_t I(t)*w_t*\log(p_t)`
+
+    where :math:`I(t)` is Ising function: it equals to 1 if :math:`t` is one of the pseudo labels else 0.
+    """
     def __init__(self):
         super(PseudoLabelLoss, self).__init__()
 
     def forward(self, x, y):
-        """
+        """ Calculate the PseudoLabelLoss loss.
+
         Args:
-            x: batch_size x class_dim
-            y: batch_size x target_dim; please ignore -1.
+            x (:obj:`torch.FloatTensor`): the input image features
+            y (list[:obj:`torch.Tensor`]): a two-element list, includes
+
+                * labels (:obj:`torch.LongTensor`): pseudo labels of the input images.
+                * scores (:obj:`torch.FloatTensor`): scores of the pseudo labels with same size of labels.
 
         Returns:
-
+            :obj:`torch.FloatTensor`: the final loss.
         """
         labels, scores = y
         logsoftmax = F.log_softmax(x, 1)
@@ -176,23 +223,28 @@ class PseudoLabelLoss(torch.nn.Module):
 
 
 class WeightLabelLoss(torch.nn.Module):
+    """ Initialize WeightLabelLoss with single label.
+    The formulation:
 
+    :math:`loss = -w_t*\log(p_t)`
+    """
     def __init__(self):
         super(WeightLabelLoss, self).__init__()
         self.ce = torch.nn.CrossEntropyLoss(reduction="none")
 
     def forward(self, x, y):
-        """
-        Args:
-            x: batch_size x class_dim
-            y: a list with [target, score],
-                 target: batch_size
-                 score: batch_size
-        Returns:
+        """ Calculate the WeightLabelLoss loss.
 
+        Args:
+            x (:obj:`torch.FloatTensor`): the input image features
+            y (list[:obj:`torch.Tensor`]): a two-element list, includes
+
+                * w (:obj:`torch.FloatTensor`): the score of the label.
+                * t (:obj:`torch.LongTensor`): the label of the input image.
+
+        Returns:
+            :obj:`torch.FloatTensor`: the final loss.
         """
-        #x = torch.rand(10, 100)
-        #y = [torch.randint(0, 100, (10,)), torch.rand(10,)]
         w, t = y
         l = self.ce(x, t)
         w_l = w.float() * l
