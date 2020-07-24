@@ -74,3 +74,5 @@ def basic_opts(parser):
                         help="disable the random crop transform mode.")
     parser.add_argument("--disable_random_hflip", default=False, action="store_true",
                         help="disable the random horizontal flip transform mode.")
+    parser.add_argument("--extract_feature", default=False, action="store_true",
+                        help="Extract the feature after pooling before last fc.")

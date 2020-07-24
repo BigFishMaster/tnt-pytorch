@@ -8,7 +8,7 @@ import torch.nn as nn
 
 
 class ModelImpl:
-    def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None):
+    def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None, extract_feature=False):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -18,7 +18,11 @@ class ModelImpl:
         elif model_name_or_path in pretrainedmodels.model_names:
             model_name = model_name_or_path
             # input_space, input_size, input_range, mean, std
-            model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
+            if extract_feature:
+                kwargs = {"extract_feature": extract_feature}
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
+            else:
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)
         else:
             logger.exception("'{}' is not available.".format(model_name_or_path))
@@ -31,43 +35,45 @@ class ModelImpl:
 
         # TODO: initialize the last_linear layer
         # url: https://pytorch.org/docs/master/notes/autograd.html
+        if extract_feature is False:
+            # for efficientnet models:
+            last_layer_name = None
+            if hasattr(model, "classifier"):
+                last_layer_name = "classifier"
+                in_features = model.classifier.in_features
+                out_features = model.classifier.out_features
+                if out_features != num_classes:
+                    model.classifier = nn.Linear(in_features, num_classes)
+            # for torchvision models
+            elif hasattr(model, "last_linear"):
+                last_layer_name = "last_linear"
+                in_features = model.last_linear.in_features
+                out_features = model.last_linear.out_features
+                if out_features != num_classes:
+                    model.last_linear = nn.Linear(in_features, num_classes)
+            # for billionscale models
+            elif hasattr(model, "fc"):  #  model.fc
+                last_layer_name = "fc"
+                in_features = model.fc.in_features
+                out_features = model.fc.out_features
+                if out_features != num_classes:
+                    model.fc = nn.Linear(in_features, num_classes)
+            # for squeezenet
+            elif hasattr(model, "last_conv"):
+                last_layer_name = "last_conv"
+                in_features = model.last_conv.in_channels
+                out_features = model.last_conv.out_channels
+                if out_features != num_classes:
+                    model.last_conv = nn.Conv2d(in_features, num_classes, kernel_size=1)
 
-        # for efficientnet models:
-        last_layer_name = None
-        if hasattr(model, "classifier"):
-            last_layer_name = "classifier"
-            in_features = model.classifier.in_features
-            out_features = model.classifier.out_features
-            if out_features != num_classes:
-                model.classifier = nn.Linear(in_features, num_classes)
-        # for torchvision models
-        elif hasattr(model, "last_linear"):
-            last_layer_name = "last_linear"
-            in_features = model.last_linear.in_features
-            out_features = model.last_linear.out_features
-            if out_features != num_classes:
-                model.last_linear = nn.Linear(in_features, num_classes)
-        # for billionscale models
-        elif hasattr(model, "fc"):  #  model.fc
-            last_layer_name = "fc"
-            in_features = model.fc.in_features
-            out_features = model.fc.out_features
-            if out_features != num_classes:
-                model.fc = nn.Linear(in_features, num_classes)
-        # for squeezenet
-        elif hasattr(model, "last_conv"):
-            last_layer_name = "last_conv"
-            in_features = model.last_conv.in_channels
-            out_features = model.last_conv.out_channels
-            if out_features != num_classes:
-                model.last_conv = nn.Conv2d(in_features, num_classes, kernel_size=1)
-
-        if gpu is not None:
-            torch.cuda.set_device(gpu)
-            model = model.cuda(gpu)
+            if gpu is not None:
+                torch.cuda.set_device(gpu)
+                model = model.cuda(gpu)
+            else:
+                if torch.cuda.is_available():
+                    model = torch.nn.DataParallel(model).cuda()
         else:
-            if torch.cuda.is_available():
-                model = torch.nn.DataParallel(model).cuda()
+            last_layer_name = "none"
 
         self.model = model
         self.model.last_layer_name = last_layer_name
@@ -83,5 +89,6 @@ class ModelImpl:
             num_classes = config["num_features"]
         else:
             num_classes = config["num_classes"]
-        self = cls(model_name, num_classes, pretrained, gpu)
+        extract_feature = config["extract_feature"]
+        self = cls(model_name, num_classes, pretrained, gpu, extract_feature)
         return self.model

@@ -38,15 +38,15 @@ class SplAtConv2d(Module):
         self.fc1 = Conv2d(channels, inter_channels, 1, groups=self.cardinality)
         self.bn1 = norm_layer(inter_channels)
         self.fc2 = Conv2d(inter_channels, channels*radix, 1, groups=self.cardinality)
-        if dropblock_prob > 0.0:
-            self.dropblock = DropBlock2D(dropblock_prob, 3)
+        #if dropblock_prob > 0.0:
+        #    self.dropblock = DropBlock2D(dropblock_prob, 3)
 
     def forward(self, x):
         x = self.conv(x)
         if self.use_bn:
             x = self.bn0(x)
-        if self.dropblock_prob > 0.0:
-            x = self.dropblock(x)
+        #if self.dropblock_prob > 0.0:
+        #    x = self.dropblock(x)
         x = self.relu(x)
 
         batch, channel = x.shape[:2]

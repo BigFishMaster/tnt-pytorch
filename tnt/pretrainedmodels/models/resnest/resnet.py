@@ -166,7 +166,7 @@ class ResNet(nn.Module):
                  rectified_conv=False, rectify_avg=False,
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
-                 last_gamma=False, norm_layer=nn.BatchNorm2d):
+                 last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False):
         self.input_space = input_space
         self.input_range = input_range
         self.input_size = input_sizes
@@ -183,6 +183,7 @@ class ResNet(nn.Module):
         self.radix = radix
         self.avd = avd
         self.avd_first = avd_first
+        self.extract_feature = extract_feature
 
         super(ResNet, self).__init__()
         self.rectified_conv = rectified_conv
@@ -234,7 +235,8 @@ class ResNet(nn.Module):
                                            dropblock_prob=dropblock_prob)
         self.avgpool = GlobalAvgPool2d()
         self.drop = nn.Dropout(final_drop) if final_drop > 0.0 else None
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        if self.extract_feature is False:
+            self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -315,6 +317,9 @@ class ResNet(nn.Module):
         x = torch.flatten(x, 1)
         if self.drop:
             x = self.drop(x)
-        x = self.fc(x)
+        if self.extract_feature:
+            return x
+        else:
+            x = self.fc(x)
 
         return x
