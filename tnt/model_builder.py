@@ -146,7 +146,8 @@ class ModelBuilder:
                     if key in ignore_keys:
                         continue
                     new_state_dict[key] = state_dict[key]
-                self.model.load_state_dict(new_state_dict, strict=False)
+                missing_keys, unexpected_keys = self.model.load_state_dict(new_state_dict, strict=False)
+                logger.info("loading model weights, missing_keys:{}, unexcepted_keys:{}".format(missing_keys, unexpected_keys))
             logger.info("model weight: %s", self.weight)
 
     def init_global(self, config):
