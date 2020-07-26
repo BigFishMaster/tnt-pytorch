@@ -76,3 +76,22 @@ def basic_opts(parser):
                         help="disable the random horizontal flip transform mode.")
     parser.add_argument("--extract_feature", default=False, action="store_true",
                         help="Extract the feature after pooling before last fc.")
+
+
+def convert_opts(parser):
+    parser.add_argument("--model_name", default="resnet50", type=str,
+                        help="model name to convert")
+    parser.add_argument("--weight", default=None, type=str,
+                        help="checkpoint path to load model weights.")
+    parser.add_argument("--output_dir", default="output_convert/", type=str,
+                        help="output path to save converted tensorflow models.")
+    parser.add_argument("--extract_feature", default=0, type=int,
+                        help="whether to extract feature before last fc or not.")
+    parser.add_argument("--image_size", default="224", type=str,
+                        help="the image size of the input. e.g. 224 or 256.")
+    parser.add_argument("--image_path", default="demo.jpg", type=str,
+                        help="a demo image for testing.")
+    parser.add_argument("--preserve_aspect_ratio", default=False, action="store_true",
+                        help="preserve the aspect ratio for input.")
+    parser.add_argument("--l2norm", default=False, action="store_true",
+                        help="l2 normalization for input.")

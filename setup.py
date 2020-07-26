@@ -14,6 +14,7 @@ setup(
     entry_points={
         'console_scripts': [
             'tnt_runner=tnt.runner:main',
+            'tnt_converter=tnt.converter:main',
         ],
     },
 )
