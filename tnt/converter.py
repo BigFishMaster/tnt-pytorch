@@ -129,13 +129,13 @@ class CustomModule(tf.Module):
         return named_output_tensor
 
 
-def test_pytorch_model(model, image, size):
+def test_pytorch_model(model, image, target):
     mean = model.mean
     std = model.std
+    size = int(target/0.875)
     tfs = [
-        transforms.Resize(256),  # 256 x 256
-        #transforms.Resize((256, 256)),  # 256 x 256
-        transforms.CenterCrop(224),  # 224 x 224
+        transforms.Resize((size, size)),  # 256 x 256
+        transforms.CenterCrop(target),  # 224 x 224
         transforms.ToTensor(),  # [0, 1]
         transforms.Normalize(mean=mean, std=std)  # normalize
     ]
