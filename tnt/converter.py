@@ -250,7 +250,6 @@ def convert(config):
     torch.random.manual_seed(0)
     tf_input = tf.convert_to_tensor(rgb_data, dtype=tf.uint8)
     print("tf_input:", tf_input.shape)
-    tmp = module(tf_input)
     output = embedding_fn(tf_input)[REQUIRED_OUTPUT].numpy()
     logger.info("tf-saved_model output: {}".format(output[:10]))
 
