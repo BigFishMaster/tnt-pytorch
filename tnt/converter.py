@@ -13,6 +13,7 @@ from tnt.utils.logging import init_logger, logger, beautify_info
 from collections import OrderedDict
 from PIL import Image
 from torchvision import transforms
+from tensorflow.python.eager import wrap_function
 
 parser = argparse.ArgumentParser(description="Converter for python to tensorflow transfering.")
 
@@ -44,7 +45,9 @@ class CustomModule(tf.Module):
         super(CustomModule, self).__init__()
         graph_def = tf.compat.v1.GraphDef()
         loaded = graph_def.ParseFromString(open(model_pb_file, "rb").read())
-        self.model_func = wrap_frozen_graph(graph_def, inputs="input1:0", outputs="output1:0")
+        #self.model_func = wrap_frozen_graph(graph_def, inputs="input1:0", outputs="output1:0")
+        self.model_func = \
+            wrap_function.function_from_graph_def(graph_def, inputs="input1:0", outputs="output1:0")
         self.l2norm = l2norm
         self.scale = scale
         self.target = target
@@ -190,7 +193,7 @@ def convert(config):
 
     input_names = ["input1"]
     output_names = ["output1"]
-    torch.onnx.export(model, (input,), output_onnx_name, verbose=True, opset_version=11,
+    torch.onnx.export(model, input, output_onnx_name, verbose=True, opset_version=11,
                       input_names=input_names, output_names=output_names)
 
     logger.info("exporting model to {} is ok.".format(output_onnx_name))
