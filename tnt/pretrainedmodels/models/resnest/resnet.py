@@ -254,10 +254,10 @@ class ResNet(nn.Module):
             if self.avg_down:
                 if dilation == 1:
                     down_layers.append(nn.AvgPool2d(kernel_size=stride, stride=stride,
-                                                    ceil_mode=True, count_include_pad=False))
+                                                    ceil_mode=False, count_include_pad=False))
                 else:
                     down_layers.append(nn.AvgPool2d(kernel_size=1, stride=1,
-                                                    ceil_mode=True, count_include_pad=False))
+                                                    ceil_mode=False, count_include_pad=False))
                 down_layers.append(nn.Conv2d(self.inplanes, planes * block.expansion,
                                              kernel_size=1, stride=1, bias=False))
             else:
