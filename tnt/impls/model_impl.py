@@ -65,15 +65,15 @@ class ModelImpl:
                 out_features = model.last_conv.out_channels
                 if out_features != num_classes:
                     model.last_conv = nn.Conv2d(in_features, num_classes, kernel_size=1)
-
-            if gpu is not None:
-                torch.cuda.set_device(gpu)
-                model = model.cuda(gpu)
-            else:
-                if torch.cuda.is_available():
-                    model = torch.nn.DataParallel(model).cuda()
         else:
             last_layer_name = "none"
+
+        if gpu is not None:
+            torch.cuda.set_device(gpu)
+            model = model.cuda(gpu)
+        else:
+            if torch.cuda.is_available():
+                model = torch.nn.DataParallel(model).cuda()
 
         self.model = model
         self.model.last_layer_name = last_layer_name
