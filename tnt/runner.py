@@ -73,6 +73,7 @@ def create_config():
     config["model"]["loss_name"] = config["loss"]["name"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
     config["model"]["num_features"] = config["data"]["num_features"]
+    config["model"]["extract_feature"] = config["extract_feature"]
     config["loss"]["gpu"] = config["global"]["gpu"]
     config["loss"]["relativelabelloss_gamma"] = config["relativelabelloss_gamma"]
     config["loss"]["num_classes"] = config["data"]["num_classes"]
