@@ -87,6 +87,8 @@ def convert_opts(parser):
                         help="output path to save converted tensorflow models.")
     parser.add_argument("--extract_feature", default=0, type=int,
                         help="whether to extract feature before last fc or not.")
+    parser.add_argument("--num_classes", default=512, type=int,
+                        help="the last layer dimensions.")
     parser.add_argument("--image_size", default="224", type=str,
                         help="the image size of the input. e.g. 224 or 256.")
     parser.add_argument("--image_path", default="demo.jpg", type=str,

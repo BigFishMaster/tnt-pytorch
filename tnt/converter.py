@@ -4,7 +4,7 @@ import onnx
 from onnx_tf.backend import prepare
 import torch
 import tensorflow as tf
-import tnt.pretrainedmodels as models
+from tnt.impls import ModelImpl
 import onnxruntime as ort
 
 import argparse
@@ -146,17 +146,14 @@ def convert(config):
     image_size = image_target_list[0]
     output_dir = config["output_dir"]
     image_path = config["image_path"]
+    num_classes = config["num_classes"]
     preserve_aspect_ratio = config["preserve_aspect_ratio"]
     l2norm = config["l2norm"]
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     extract_feature = config["extract_feature"]
-    if extract_feature:
-        kwargs = {"extract_feature": extract_feature}
-        model = models.__dict__[model_name](pretrained=None, **kwargs)
-    else:
-        model = models.__dict__[model_name](pretrained=None)
+    model = ModelImpl(model_name, num_classes, extract_feature=extract_feature).model
 
     logger.info("loading model name {} is ok.".format(model_name))
 
