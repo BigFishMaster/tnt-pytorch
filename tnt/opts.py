@@ -85,7 +85,7 @@ def convert_opts(parser):
                         help="checkpoint path to load model weights.")
     parser.add_argument("--output_dir", default="output_convert/", type=str,
                         help="output path to save converted tensorflow models.")
-    parser.add_argument("--extract_feature", default=0, type=int,
+    parser.add_argument("--extract_feature", default=False, action="store_true",
                         help="whether to extract feature before last fc or not.")
     parser.add_argument("--num_classes", default=512, type=int,
                         help="the last layer dimensions.")
