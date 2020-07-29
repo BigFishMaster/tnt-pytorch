@@ -251,7 +251,8 @@ def convert(config):
     tf_input = tf.convert_to_tensor(rgb_data, dtype=tf.uint8)
     print("tf_input:", tf_input.shape)
     output = embedding_fn(tf_input)[REQUIRED_OUTPUT].numpy()
-    logger.info("tf-saved_model output: {}".format(output[:10]))
+    logger.info("tf-saved_model output: {}, shape: {}, l2-sum: {}".format(
+        output[:10], output.shape, tf.reduce_sum(output*output)))
 
 
 def main():
