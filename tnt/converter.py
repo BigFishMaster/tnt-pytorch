@@ -115,10 +115,10 @@ class CustomModule(tf.Module):
         return named_output_tensor
 
 
-def test_pytorch_model(model, image, target):
+def test_pytorch_model(model, image, target, image_scale):
     mean = model.mean
     std = model.std
-    size = int(target/0.875)
+    size = int(target/image_scale)
     tfs = [
         transforms.Resize((size, size)),  # 256 x 256
         transforms.CenterCrop(target),  # 224 x 224
@@ -141,8 +141,9 @@ def convert(config):
     torch.random.manual_seed(0)
     model_name = config["model_name"]
     weight_path = config["weight"]
+    image_scale = config["image_scale"]
     image_target_list = [int(sz) for sz in config["image_size"].split(",")]
-    image_size_list = [int(sz / 0.875) for sz in image_target_list]
+    image_size_list = [int(sz / image_scale) for sz in image_target_list]
     image_size = image_target_list[0]
     output_dir = config["output_dir"]
     image_path = config["image_path"]
@@ -201,7 +202,7 @@ def convert(config):
     logger.info("check the onnx model is ok.")
     logger.info("checking the difference between pytorch and onnx models.")
 
-    torch_input, torch_out = test_pytorch_model(model, image, image_size)
+    torch_input, torch_out = test_pytorch_model(model, image, image_size, image_scale)
 
     ort_session = ort.InferenceSession(output_onnx_name)
     onnx_input = torch_input.numpy()

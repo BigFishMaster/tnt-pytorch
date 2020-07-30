@@ -97,3 +97,5 @@ def convert_opts(parser):
                         help="preserve the aspect ratio for input.")
     parser.add_argument("--l2norm", default=False, action="store_true",
                         help="l2 normalization for input.")
+    parser.add_argument("--image_scale", default=0.875, type=float,
+                        help="image to be scaled before cropping.")
