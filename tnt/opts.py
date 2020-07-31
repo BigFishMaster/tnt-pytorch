@@ -54,6 +54,8 @@ def basic_opts(parser):
                         help="use first label for sampling weight.")
     parser.add_argument("--enable_random_erase", default=False, action="store_true",
                         help="enable the random erasing transform mode.")
+    parser.add_argument("--enable_random_resized_crop", default=False, action="store_true",
+                        help="enable the random resized crop transform mode.")
     parser.add_argument("--box_extend", default=None, type=str,
                         help="extend the box of image in metric learning, e.g.: 0.1,0.1,0.1,0.1")
     parser.add_argument("--arcface_scale", default=30, type=float,

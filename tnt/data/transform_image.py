@@ -60,6 +60,7 @@ class TransformImage(object):
 
         # random erasing will work when training only.
         self.random_erase = self.is_train and opts.random_erase
+        self.random_resized_crop = self.is_train and opts.random_resized_crop
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = opts.image_scale
@@ -106,19 +107,22 @@ class TransformImage(object):
 
     def _init_single_crop(self):
         tfs = []
-        if self.preserve_aspect_ratio:
-            tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale)),
-                                         interpolation=_pil_interp("bilinear")))
+        if self.random_resized_crop:
+            tfs.append(transforms.RandomResizedCrop(max(self.input_size), scale=(0.5, 1.0)))
         else:
-            height = int(self.input_size[1] / self.scale)
-            width = int(self.input_size[2] / self.scale)
-            tfs.append(transforms.Resize((height, width),
-                                         interpolation=_pil_interp("bilinear")))
+            if self.preserve_aspect_ratio:
+                tfs.append(transforms.Resize(int(math.floor(max(self.input_size)/self.scale)),
+                                             interpolation=_pil_interp("bilinear")))
+            else:
+                height = int(self.input_size[1] / self.scale)
+                width = int(self.input_size[2] / self.scale)
+                tfs.append(transforms.Resize((height, width),
+                                             interpolation=_pil_interp("bilinear")))
 
-        if self.random_crop:
-            tfs.append(transforms.RandomCrop(max(self.input_size)))
-        else:
-            tfs.append(transforms.CenterCrop(max(self.input_size)))
+            if self.random_crop:
+                tfs.append(transforms.RandomCrop(max(self.input_size)))
+            else:
+                tfs.append(transforms.CenterCrop(max(self.input_size)))
 
         if self.random_hflip:
             tfs.append(transforms.RandomHorizontalFlip())
