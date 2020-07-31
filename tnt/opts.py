@@ -101,3 +101,26 @@ def convert_opts(parser):
                         help="l2 normalization for input.")
     parser.add_argument("--image_scale", default=0.875, type=float,
                         help="image to be scaled before cropping.")
+
+
+def comb_convert_opts(parser):
+    parser.add_argument("--model_name", default="resnet50,resnet50", type=str,
+                        help="model name to convert")
+    parser.add_argument("--weight", default="path,path", type=str,
+                        help="checkpoint path to load model weights.")
+    parser.add_argument("--output_dir", default="output_convert/", type=str,
+                        help="output path to save converted tensorflow models.")
+    parser.add_argument("--extract_feature", default="1,1", type=str,
+                        help="whether to extract feature before last fc or not.")
+    parser.add_argument("--num_classes", default="512,512", type=str,
+                        help="the last layer dimensions.")
+    parser.add_argument("--image_size", default="224,224", type=str,
+                        help="the image size of the input. e.g. 224 or 256.")
+    parser.add_argument("--image_path", default="demo.jpg", type=str,
+                        help="a demo image for testing.")
+    parser.add_argument("--preserve_aspect_ratio", default="1,1", type=str,
+                        help="preserve the aspect ratio for input.")
+    parser.add_argument("--l2norm", default=False, action="store_true",
+                        help="l2 normalization for input.")
+    parser.add_argument("--image_scale", default="0.875,0.875", type=str,
+                        help="image to be scaled before cropping.")
