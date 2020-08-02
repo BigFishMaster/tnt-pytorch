@@ -11,7 +11,7 @@ class MultiPoolingModel(nn.Module):
         self.mp = MultiplePooling(input_dim=2048, output_dim=num_classes)
         self.input_space = self.base.input_space
         self.input_range = self.base.input_range
-        self.input_size = self.bsae.input_size
+        self.input_size = self.base.input_size
         self.mean = self.base.mean
         self.std = self.base.std
 
