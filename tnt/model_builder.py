@@ -21,6 +21,7 @@ class ModelBuilder:
             self.model = FaceModelImpl.from_config(config["model"])
         else:
             self.model = ModelImpl.from_config(config["model"])
+        self.multiple_pooling = config["model"]["multiple_pooling"]
         self.loss = LossImpl.from_config(config["loss"])
         if self.loss.name == "ClassBalancedLoss":
             for m in self.model.modules():
@@ -244,6 +245,9 @@ class ModelBuilder:
                 output = output.view(bs, ncrops, -1).mean(1)
             else:
                 output = self.model(input)
+                # multiple pooling support:
+                if self.multiple_pooling:
+                    target = target.reshape(-1, 1).repeat(1, 16).reshape(-1)
 
             if mode != "test":
                 if torch.cuda.is_available():

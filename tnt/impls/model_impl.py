@@ -5,10 +5,12 @@ from tnt.utils.io import load_model_from_file
 from tnt.utils.logging import logger
 import tnt.pretrainedmodels as pretrainedmodels
 import torch.nn as nn
+from tnt.layers import MultiPoolingModel
 
 
 class ModelImpl:
-    def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None, extract_feature=False):
+    def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
+                 extract_feature=False, multiple_pooling=False):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -18,7 +20,10 @@ class ModelImpl:
         elif model_name_or_path in pretrainedmodels.model_names:
             model_name = model_name_or_path
             # input_space, input_size, input_range, mean, std
-            if extract_feature:
+            if multiple_pooling:
+                model = MultiPoolingModel(model_name, num_classes, pretrained)
+                logger.info("MultiPoolingModel with name: {} and feature: {}.".format(model_name, num_classes))
+            elif extract_feature:
                 kwargs = {"extract_feature": extract_feature}
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             else:
@@ -35,7 +40,7 @@ class ModelImpl:
 
         # TODO: initialize the last_linear layer
         # url: https://pytorch.org/docs/master/notes/autograd.html
-        if extract_feature is False:
+        if extract_feature is False and multiple_pooling is False:
             # for efficientnet models:
             last_layer_name = None
             if hasattr(model, "classifier"):
@@ -90,5 +95,6 @@ class ModelImpl:
         else:
             num_classes = config["num_classes"]
         extract_feature = config["extract_feature"]
-        self = cls(model_name, num_classes, pretrained, gpu, extract_feature)
+        multiple_pooling = config["multiple_pooling"]
+        self = cls(model_name, num_classes, pretrained, gpu, extract_feature, multiple_pooling)
         return self.model

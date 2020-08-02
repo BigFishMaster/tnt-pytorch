@@ -80,6 +80,9 @@ class CosFaceLoss(nn.Module):
         return cosine
 
     def forward(self, feature, label):
+        if len(label) == len(feature) * 16:
+            B, C = feature.shape[:2]
+            feature = feature.reshape(B*16, C//16)
         cosine = self.output(feature)
         phi = cosine - self.m
         output = cosine * 1.0  # make backward works

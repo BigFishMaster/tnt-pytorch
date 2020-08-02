@@ -78,6 +78,8 @@ def basic_opts(parser):
                         help="disable the random horizontal flip transform mode.")
     parser.add_argument("--extract_feature", default=False, action="store_true",
                         help="Extract the feature after pooling before last fc.")
+    parser.add_argument("--multiple_pooling", default=False, action="store_true",
+                        help="Use multiple pooling for conv5.")
 
 
 def convert_opts(parser):

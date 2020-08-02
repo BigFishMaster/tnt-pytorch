@@ -166,7 +166,8 @@ class ResNet(nn.Module):
                  rectified_conv=False, rectify_avg=False,
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
-                 last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False):
+                 last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False,
+                 multiple_pooling=False):
         self.input_space = input_space
         self.input_range = input_range
         self.input_size = input_sizes
@@ -184,6 +185,7 @@ class ResNet(nn.Module):
         self.avd = avd
         self.avd_first = avd_first
         self.extract_feature = extract_feature
+        self.multiple_pooling = multiple_pooling
 
         super(ResNet, self).__init__()
         self.rectified_conv = rectified_conv
@@ -235,7 +237,7 @@ class ResNet(nn.Module):
                                            dropblock_prob=dropblock_prob)
         self.avgpool = GlobalAvgPool2d()
         self.drop = nn.Dropout(final_drop) if final_drop > 0.0 else None
-        if self.extract_feature is False:
+        if self.extract_feature is False and self.multiple_pooling is False:
             self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
@@ -311,6 +313,8 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
+        if self.multiple_pooling:
+            return x
 
         x = self.avgpool(x)
         #x = x.view(x.size(0), -1)
