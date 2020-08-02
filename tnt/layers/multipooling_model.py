@@ -9,6 +9,11 @@ class MultiPoolingModel(nn.Module):
         super(MultiPoolingModel, self).__init__()
         self.base = pretrainedmodels.__dict__[model_name](pretrained=pretrained, multiple_pooling=True)
         self.mp = MultiplePooling(input_dim=2048, output_dim=num_classes)
+        self.input_space = self.base.input_space
+        self.input_range = self.base.input_range
+        self.input_size = self.bsae.input_size
+        self.mean = self.base.mean
+        self.std = self.base.std
 
     def forward(self, x):
         # shape: B x C_in x 12 x 12
