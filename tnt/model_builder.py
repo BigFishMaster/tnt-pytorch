@@ -253,7 +253,7 @@ class ModelBuilder:
             else:
                 output = self.model(input)
                 # multiple pooling support:
-                if self.multiple_pooling:
+                if self.multiple_pooling and target is not None:
                     target = target.reshape(-1, 1).repeat(1, 16).reshape(-1)
 
             if mode != "test":
