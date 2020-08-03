@@ -149,7 +149,14 @@ class ModelBuilder:
                         continue
                     new_state_dict[key] = state_dict[key]
                 missing_keys, unexpected_keys = self.model.load_state_dict(new_state_dict, strict=False)
-                logger.info("loading model weights, missing_keys:{}, unexcepted_keys:{}".format(missing_keys, unexpected_keys))
+                logger.info("loading model weights, missing_keys:{}, unexcepted_keys:{}".format(
+                    missing_keys, unexpected_keys))
+            if self.others is not None and "loss_state_dict" in checkpoint:
+                try:
+                    self.loss.load_state_dict(checkpoint["loss_state_dict"])
+                    logger.info("Load loss_state_dict success.")
+                except:
+                    logger.error("Load loss_state_dict failed.")
             logger.info("model weight: %s", self.weight)
 
     def init_global(self, config):
