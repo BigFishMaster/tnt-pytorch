@@ -5,10 +5,10 @@ from tnt.layers.multiple_pooling import MultiplePooling
 
 
 class MultiPoolingModel(nn.Module):
-    def __init__(self, model_name, num_classes, pretrained):
+    def __init__(self, model_name, num_classes, mp_layers="conv+relu", pretrained=None):
         super(MultiPoolingModel, self).__init__()
         self.base = pretrainedmodels.__dict__[model_name](pretrained=pretrained, multiple_pooling=True)
-        self.mp = MultiplePooling(input_dim=2048, output_dim=num_classes)
+        self.mp = MultiplePooling(input_dim=2048, output_dim=num_classes, mp_layers=mp_layers)
         self.input_space = self.base.input_space
         self.input_range = self.base.input_range
         self.input_size = self.base.input_size

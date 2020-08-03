@@ -80,6 +80,8 @@ def basic_opts(parser):
                         help="Extract the feature after pooling before last fc.")
     parser.add_argument("--multiple_pooling", default=False, action="store_true",
                         help="Use multiple pooling for conv5.")
+    parser.add_argument("--mp_layers", default="conv+relu", type=str,
+                        help="multiple pooling layers.")
 
 
 def convert_opts(parser):

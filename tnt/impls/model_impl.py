@@ -10,7 +10,7 @@ from tnt.layers import MultiPoolingModel
 
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
-                 extract_feature=False, multiple_pooling=False):
+                 extract_feature=False, multiple_pooling=False, mp_layers="conv+relu"):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -21,7 +21,7 @@ class ModelImpl:
             model_name = model_name_or_path
             # input_space, input_size, input_range, mean, std
             if multiple_pooling:
-                model = MultiPoolingModel(model_name, num_classes, pretrained)
+                model = MultiPoolingModel(model_name, num_classes, mp_layers, pretrained)
                 logger.info("MultiPoolingModel with name: {} and feature: {}.".format(model_name, num_classes))
             elif extract_feature:
                 kwargs = {"extract_feature": extract_feature}
@@ -96,5 +96,7 @@ class ModelImpl:
             num_classes = config["num_classes"]
         extract_feature = config["extract_feature"]
         multiple_pooling = config["multiple_pooling"]
-        self = cls(model_name, num_classes, pretrained, gpu, extract_feature, multiple_pooling)
+        mp_layers = config["mp_layers"]
+        self = cls(model_name, num_classes, pretrained, gpu, extract_feature,
+                   multiple_pooling, mp_layers)
         return self.model

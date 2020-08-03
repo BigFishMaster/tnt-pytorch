@@ -3,9 +3,10 @@ import torch.nn as nn
 
 
 class MultiplePooling(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, output_dim, mp_layers="conv+relu"):
         super(MultiplePooling, self).__init__()
         # output: B x C x 1 x 1
+        self.mp_layers = mp_layers.split("+")
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.way_0 = self._make_layer(input_dim, output_dim)
         self.way_1 = self._make_layer(input_dim, output_dim)
@@ -29,11 +30,15 @@ class MultiplePooling(nn.Module):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
 
     def _make_layer(self, input_dim, output_dim):
-        return nn.Sequential(
-            nn.Conv2d(input_dim, output_dim, kernel_size=1),
-            #nn.BatchNorm2d(output_dim),
-            nn.ReLU(inplace=True)
-        )
+        layers = []
+        if "conv" in self.mp_layers:
+            layers.append(nn.Conv2d(input_dim, output_dim, kernel_size=1))
+        if "bn" in self.mp_layers:
+            layers.append(nn.BatchNorm2d(output_dim))
+        if "relu" in self.mp_layers:
+            layers.append(nn.ReLU(inplace=True))
+
+        return nn.Sequential(*layers)
 
     def forward(self, input):
         # input: B x C x 12 x 12
@@ -114,7 +119,9 @@ class MultiplePooling(nn.Module):
 
 if __name__ == "__main__":
     input = torch.Tensor(5, 32, 12, 12)
-    layer = MultiplePooling(32, 16)
+    layer = MultiplePooling(32, 16, mp_layers="conv")
     layer.eval()
+    for param in layer.named_parameters():
+        print(param[0])
     output = layer(input)
 
