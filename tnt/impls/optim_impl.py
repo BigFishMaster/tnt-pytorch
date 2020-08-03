@@ -35,6 +35,13 @@ class OptImpl:
                 momentum=momentum,
                 weight_decay=weight_decay
             )
+        elif optimizer_name == "Adam":
+            lr = config["lr"]
+            weight_decay = config["weight_decay"]
+            optimizer = optimizers.__dict__[optimizer_name](
+                all_parameters, lr,
+                weight_decay=weight_decay
+            )
         elif optimizer_name == "RMSprop":
             lr = config["lr"]
             momentum = config["momentum"]
