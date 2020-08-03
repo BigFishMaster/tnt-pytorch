@@ -24,10 +24,14 @@ class MultiplePooling(nn.Module):
         self.way_14 = self._make_layer(input_dim, output_dim)
         self.way_15 = self._make_layer(input_dim, output_dim)
 
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+
     def _make_layer(self, input_dim, output_dim):
         return nn.Sequential(
             nn.Conv2d(input_dim, output_dim, kernel_size=1),
-            nn.BatchNorm2d(output_dim),
+            #nn.BatchNorm2d(output_dim),
             nn.ReLU(inplace=True)
         )
 
