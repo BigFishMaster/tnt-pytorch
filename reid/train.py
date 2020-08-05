@@ -28,6 +28,8 @@ def train(cfg):
 
     # prepare model
     model = build_model(cfg, num_classes)
+    if torch.cuda.is_available():
+        model = torch.nn.DataParallel(model).cuda()
 
     if cfg.MODEL.IF_WITH_CENTER == 'no':
         print('Train without center loss, the loss type is', cfg.MODEL.METRIC_LOSS_TYPE)
@@ -140,8 +142,6 @@ def main():
             logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    if cfg.MODEL.DEVICE == "cuda":
-        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID    # new add by gu
     cudnn.benchmark = True
     train(cfg)
 

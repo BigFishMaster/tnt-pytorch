@@ -51,12 +51,12 @@ def main():
             logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    if cfg.MODEL.DEVICE == "cuda":
-        os.environ['CUDA_VISIBLE_DEVICES'] = cfg.MODEL.DEVICE_ID
     cudnn.benchmark = True
 
     train_loader, val_loader, num_query, num_classes = make_data_loader(cfg)
     model = build_model(cfg, num_classes)
+    if torch.cuda.is_available():
+        model = torch.nn.DataParallel(model).cuda()
     model.load_param(cfg.TEST.WEIGHT)
 
     inference(cfg, model, val_loader, num_query)

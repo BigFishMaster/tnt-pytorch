@@ -17,8 +17,8 @@ from reid.utils.reid_metric import R1_mAP
 global ITER
 ITER = 0
 
-def create_supervised_trainer(model, optimizer, loss_fn,
-                              device=None):
+
+def create_supervised_trainer(model, optimizer, loss_fn):
     """
     Factory function for creating a trainer for supervised models
 
@@ -26,23 +26,16 @@ def create_supervised_trainer(model, optimizer, loss_fn,
         model (`torch.nn.Module`): the model to train
         optimizer (`torch.optim.Optimizer`): the optimizer to use
         loss_fn (torch.nn loss function): the loss function to use
-        device (str, optional): device type specification (default: None).
-            Applies to both model and batches.
 
     Returns:
         Engine: a trainer engine with supervised update function
     """
-    if device:
-        if torch.cuda.device_count() > 1:
-            model = nn.DataParallel(model)
-        model.to(device)
-
     def _update(engine, batch):
         model.train()
         optimizer.zero_grad()
         img, target = batch
-        img = img.to(device) if torch.cuda.device_count() >= 1 else img
-        target = target.to(device) if torch.cuda.device_count() >= 1 else target
+        if torch.cuda.is_available():
+            target = target.cuda(None, non_blocking=True)
         score, feat = model(img)
         loss = loss_fn(score, feat, target)
         loss.backward()
@@ -54,8 +47,8 @@ def create_supervised_trainer(model, optimizer, loss_fn,
     return Engine(_update)
 
 
-def create_supervised_trainer_with_center(model, center_criterion, optimizer, optimizer_center, loss_fn, cetner_loss_weight,
-                              device=None):
+def create_supervised_trainer_with_center(model, center_criterion, optimizer, optimizer_center,
+                                          loss_fn, cetner_loss_weight):
     """
     Factory function for creating a trainer for supervised models
 
@@ -63,24 +56,17 @@ def create_supervised_trainer_with_center(model, center_criterion, optimizer, op
         model (`torch.nn.Module`): the model to train
         optimizer (`torch.optim.Optimizer`): the optimizer to use
         loss_fn (torch.nn loss function): the loss function to use
-        device (str, optional): device type specification (default: None).
-            Applies to both model and batches.
 
     Returns:
         Engine: a trainer engine with supervised update function
     """
-    if device:
-        if torch.cuda.device_count() > 1:
-            model = nn.DataParallel(model)
-        model.to(device)
-
     def _update(engine, batch):
         model.train()
         optimizer.zero_grad()
         optimizer_center.zero_grad()
         img, target = batch
-        img = img.to(device) if torch.cuda.device_count() >= 1 else img
-        target = target.to(device) if torch.cuda.device_count() >= 1 else target
+        if torch.cuda.is_available():
+            target = target.cuda(None, non_blocking=True)
         score, feat = model(img)
         loss = loss_fn(score, feat, target)
         # print("Total loss is {}, center loss is {}".format(loss, center_criterion(feat, target)))
@@ -97,29 +83,20 @@ def create_supervised_trainer_with_center(model, center_criterion, optimizer, op
     return Engine(_update)
 
 
-def create_supervised_evaluator(model, metrics,
-                                device=None):
+def create_supervised_evaluator(model, metrics):
     """
     Factory function for creating an evaluator for supervised models
 
     Args:
         model (`torch.nn.Module`): the model to train
         metrics (dict of str - :class:`ignite.metrics.Metric`): a map of metric names to Metrics
-        device (str, optional): device type specification (default: None).
-            Applies to both model and batches.
     Returns:
         Engine: an evaluator engine with supervised inference function
     """
-    if device:
-        if torch.cuda.device_count() > 1:
-            model = nn.DataParallel(model)
-        model.to(device)
-
     def _inference(engine, batch):
         model.eval()
         with torch.no_grad():
             data, pids, camids = batch
-            data = data.to(device) if torch.cuda.device_count() >= 1 else data
             feat = model(data)
             return feat, pids, camids
 
@@ -146,13 +123,12 @@ def do_train(
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     eval_period = cfg.SOLVER.EVAL_PERIOD
     output_dir = cfg.OUTPUT_DIR
-    device = cfg.MODEL.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
 
     logger = logging.getLogger("reid_baseline.train")
     logger.info("Start training")
-    trainer = create_supervised_trainer(model, optimizer, loss_fn, device=device)
-    evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)}, device=device)
+    trainer = create_supervised_trainer(model, optimizer, loss_fn)
+    evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP(num_query, max_rank=100, feat_norm=cfg.TEST.FEAT_NORM)})
     checkpointer = ModelCheckpoint(output_dir, cfg.MODEL.NAME, checkpoint_period, n_saved=10, require_empty=False)
     timer = Timer(average=True)
 
@@ -225,13 +201,12 @@ def do_train_with_center(
     checkpoint_period = cfg.SOLVER.CHECKPOINT_PERIOD
     eval_period = cfg.SOLVER.EVAL_PERIOD
     output_dir = cfg.OUTPUT_DIR
-    device = cfg.MODEL.DEVICE
     epochs = cfg.SOLVER.MAX_EPOCHS
 
     logger = logging.getLogger("reid_baseline.train")
     logger.info("Start training")
-    trainer = create_supervised_trainer_with_center(model, center_criterion, optimizer, optimizer_center, loss_fn, cfg.SOLVER.CENTER_LOSS_WEIGHT, device=device)
-    evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP(num_query, max_rank=100, feat_norm=cfg.TEST.FEAT_NORM)}, device=device)
+    trainer = create_supervised_trainer_with_center(model, center_criterion, optimizer, optimizer_center, loss_fn, cfg.SOLVER.CENTER_LOSS_WEIGHT)
+    evaluator = create_supervised_evaluator(model, metrics={'r1_mAP': R1_mAP(num_query, max_rank=100, feat_norm=cfg.TEST.FEAT_NORM)})
     checkpointer = ModelCheckpoint(output_dir, cfg.MODEL.NAME, checkpoint_period, n_saved=10, require_empty=False)
     timer = Timer(average=True)
 
