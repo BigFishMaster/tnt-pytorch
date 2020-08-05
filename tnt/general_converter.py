@@ -91,17 +91,19 @@ class CustomModule(tf.Module):
 
         output_global = resize_and_extract(self.scales[0], self.targets[0][0], self.sizes[0][0],
                                             self.means[0], self.stds[0], self.ps[0], self.model_funcs[0])
+        if self.l2norm:
+            output_global = tf.nn.l2_normalize(output_global, axis=1, name="global_l2norm0")
         # Loop over subsequent scales.
-        for ind in tf.range(1, len(self.model_funcs)):
+        for ind in range(1, len(self.model_funcs)):
             tf.autograph.experimental.set_loop_options(
                 shape_invariants=[(output_global, tf.TensorShape([None, None]))])
 
             global_descriptor = resize_and_extract(self.scales[ind], self.targets[ind][0], self.sizes[ind][0],
                                                    self.means[ind], self.stds[ind], self.ps[ind], self.model_funcs[ind])
+            if self.l2norm:
+                global_descriptor = tf.nn.l2_normalize(global_descriptor, axis=1, name="global_l2norm"+str(ind))
             output_global = tf.concat([output_global, global_descriptor], 1)
 
-        if self.l2norm:
-            output_global = tf.nn.l2_normalize(output_global, axis=1, name="global_l2norm")
 
         # output the feature with a key.
         named_output_tensor = {"global_descriptor": tf.identity(
