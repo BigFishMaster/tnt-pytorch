@@ -100,6 +100,7 @@ def train(cfg):
             missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=False)
             print("loading model weights, missing_keys:{}, unexcepted_keys:{}".format(
                 missing_keys, unexpected_keys))
+            start_epoch = 0
             scheduler = WarmupMultiStepLR(optimizer, cfg.SOLVER.STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_FACTOR,
                                           cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.WARMUP_METHOD)
         else:
