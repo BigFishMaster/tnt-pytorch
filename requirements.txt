@@ -5,3 +5,5 @@ numpy==1.16.3
 torchvision==0.5.0
 Pillow==7.0.0
 PyYAML==5.3.1
+yacs==0.1.7
+pytorch-ignite==0.1.2
