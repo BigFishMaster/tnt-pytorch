@@ -90,3 +90,66 @@ class CosFaceLoss(nn.Module):
         output[range(batch_size), label] = phi[range(batch_size), label]
         loss = self.ce(output * self.s, label)
         return loss, cosine
+
+
+class MultipleCosFaceLoss(nn.Module):
+
+    def __init__(self, feature_size, num_classes, s=30.0, m=0.40):
+        """
+        Args:
+            feature_size: usually 128, 256, 512 ...
+            num_classes: num of people when training
+            s: scale, see normface https://arxiv.org/abs/1704.06369
+            m: margin, see SphereFace, CosFace, and ArcFace paper
+        """
+        super(MultipleCosFaceLoss, self).__init__()
+        self.in_features = feature_size
+        self.out_features = num_classes
+        self.s = s
+        self.m = m
+        self.weight = nn.Parameter(torch.FloatTensor(1, 16, self.in_features, self.out_features))
+
+        nn.init.xavier_uniform_(self.weight)
+
+        self.ce = nn.CrossEntropyLoss()
+
+    def output(self, feature):
+        # f: B x 16 x norm(C) x 1
+        # w: 1 x 16 x norm(C) x D
+        # o: B x 16 x C x D
+        cosine = F.normalize(feature, dim=2) * F.normalize(self.weight, 2)
+        # o: B x 16 x D
+        cosine = cosine.sum(dim=2)
+        return cosine
+
+    def forward(self, feature, target):
+        # f: B x C*16
+        # l: B*16
+        B, C = feature.shape[:2]
+        feature = feature.reshape(B, 16, C//16, 1)
+        # B x 16 x D
+        cosines = self.output(feature)
+        #
+        labels = target.reshape(B, 16)
+        total_loss = 0
+        for i in range(16):
+            cosine = cosines[:, i, :]
+            label = labels[:, i]
+            phi = cosine - self.m
+            output = cosine * 1.0  # make backward works
+            batch_size = len(output)
+            output[range(batch_size), label] = phi[range(batch_size), label]
+            loss = self.ce(output * self.s, label)
+            total_loss += loss
+        out_cosine = cosines.reshape(B*16, -1)
+        return total_loss, out_cosine
+
+
+if __name__ == "__main__":
+    feature = torch.rand((10, 8192))
+    label = torch.randint(0, 100, size=(160,))
+
+    loss_func = MultipleCosFaceLoss(512, 100)
+    output = loss_func(feature, label)
+    print("ok.")
+
