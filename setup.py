@@ -17,6 +17,8 @@ setup(
             'tnt_converter=tnt.converter:main',
             'tnt_comb_converter=tnt.comb_converter:main',
             'tnt_general_converter=tnt.general_converter:main',
+            'reid_train=reid.train:main',
+            'reid_test=reid.test:main'
         ],
     },
 )
