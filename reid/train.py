@@ -8,7 +8,7 @@ import argparse
 import os
 import sys
 import torch
-
+from collections import OrderedDict
 from torch.backends import cudnn
 
 from reid.config import cfg
@@ -90,6 +90,16 @@ def train(cfg):
             start_epoch = 0
             scheduler = WarmupMultiStepLR(optimizer, cfg.SOLVER.STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_FACTOR,
                                           cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.WARMUP_METHOD)
+        elif cfg.MODEL.PRETRAIN_CHOICE == "weight":
+            checkpoint = torch.load(cfg.MODEL.PRETRAIN_PATH)
+            state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+            new_state_dict = OrderedDict()
+            for key in state_dict.keys():
+                new_key = key.replace("module", "module.base")
+                new_state_dict[new_key] = state_dict[key]
+            missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=False)
+            print("loading model weights, missing_keys:{}, unexcepted_keys:{}".format(
+                missing_keys, unexpected_keys))
         else:
             print('Only support pretrain_choice for imagenet and self, but got {}'.format(cfg.MODEL.PRETRAIN_CHOICE))
 
