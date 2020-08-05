@@ -1,0 +1,58 @@
+preserve_aspect_ratio: 0
+#image_size: 224
+data:
+  # In metric learning, num_features is used to initialize the last layer.
+  num_features: 512
+  num_classes: 100
+  mode: [train, valid]
+  train: ../tests/data/metric_data/train.txt
+  valid: ../tests/data/metric_data/valid.txt
+  test: null
+  data_prefix: ../tests/
+  sampler:
+    strategy: class_balanced
+    batch_size: 2
+    num_workers: 0
+    num_samples: 100
+  format: txt
+  modals: [image, label]
+  types: [path, int]
+
+global:
+  gpu: null
+  resume: null
+  weight: null
+  log_dir: ./runs/
+  log_file: train.log
+  num_epochs: 1000
+  save_epoch_steps: 10
+  save_model_file: model-{}.pt
+  save_checkpoint_file: last_checkpoint.txt
+  report_interval: 20
+
+model:
+  TORCH_HOME: ../pretrained/
+  name: resnest50
+  pretrained: null
+
+
+loss:
+  name: MultipleCosFaceLoss
+
+optimizer:
+  accum_steps: 1
+  name: SGD
+  lr: 0.01
+  momentum: 0.9
+  weight_decay: 0.0003
+
+metric:
+  name: acc_topk
+  acc_topk: [1, 3, 5]
+
+lr_strategy:
+  name: stepwise
+  start_lr: 0.0001
+  step_epochs: 200
+  decay_scale: 0.1
+

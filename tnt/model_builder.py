@@ -27,7 +27,7 @@ class ModelBuilder:
             for m in self.model.modules():
                 if m.__class__.__name__ == "Linear":
                     torch.nn.init.constant_(m.bias, -np.log(config["loss"]["num_classes"] - 1))
-        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss", "MetricCELoss"]:
+        if self.loss.name in ["CosFaceLoss", "ArcFaceLoss", "MetricCELoss", "MultipleCosFaceLoss"]:
             self.others = self.loss
         else:
             self.others = None
