@@ -54,7 +54,7 @@ def main():
     model = build_model(cfg, num_classes)
     if torch.cuda.is_available():
         model.cuda()
-        model.load_param(cfg.TEST.MODEL_WEIGHT)
+        model.load_param(cfg.TEST.WEIGHT)
         model = torch.nn.DataParallel(model)
     inference(cfg, model, infer_loader)
 
