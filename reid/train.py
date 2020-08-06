@@ -44,8 +44,8 @@ def train(cfg):
             print('Start epoch:', start_epoch)
             path_to_optimizer = cfg.MODEL.PRETRAIN_PATH.replace('model', 'optimizer')
             print('Path to the checkpoint of optimizer:', path_to_optimizer)
-            model.load_state_dict(torch.load(cfg.MODEL.PRETRAIN_PATH))
-            optimizer.load_state_dict(torch.load(path_to_optimizer))
+            model.load_state_dict(torch.load(cfg.MODEL.PRETRAIN_PATH).state_dict())
+            optimizer.load_state_dict(torch.load(path_to_optimizer).state_dict())
             scheduler = WarmupMultiStepLR(optimizer, cfg.SOLVER.STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_FACTOR,
                                           cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.WARMUP_METHOD, start_epoch)
         elif cfg.MODEL.PRETRAIN_CHOICE == 'imagenet':
@@ -87,13 +87,13 @@ def train(cfg):
             if cfg.MODEL.METRIC_LOSS_TYPE == "triplet_cosface_center":
                 path_to_cosface_param = cfg.MODEL.PRETRAIN_PATH.replace('model', 'cosface_param')
                 print('Path to the checkpoint of cosface_param:', path_to_cosface_param)
-                cosface.load_state_dict(torch.load(path_to_cosface_param))
+                cosface.load_state_dict(torch.load(path_to_cosface_param).state_dict())
             path_to_optimizer_center = cfg.MODEL.PRETRAIN_PATH.replace('model', 'optimizer_center')
             print('Path to the checkpoint of optimizer_center:', path_to_optimizer_center)
-            model.load_state_dict(torch.load(cfg.MODEL.PRETRAIN_PATH))
-            optimizer.load_state_dict(torch.load(path_to_optimizer))
-            center_criterion.load_state_dict(torch.load(path_to_center_param))
-            optimizer_center.load_state_dict(torch.load(path_to_optimizer_center))
+            model.load_state_dict(torch.load(cfg.MODEL.PRETRAIN_PATH).state_dict())
+            optimizer.load_state_dict(torch.load(path_to_optimizer).state_dict())
+            center_criterion.load_state_dict(torch.load(path_to_center_param).state_dict())
+            optimizer_center.load_state_dict(torch.load(path_to_optimizer_center).state_dict())
             scheduler = WarmupMultiStepLR(optimizer, cfg.SOLVER.STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_FACTOR,
                                           cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.WARMUP_METHOD, start_epoch)
         elif cfg.MODEL.PRETRAIN_CHOICE == 'imagenet':
