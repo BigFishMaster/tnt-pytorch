@@ -33,7 +33,8 @@ class LossImpl:
         if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:
             loss.gamma = kwargs.get("relativelabelloss_gamma", 0.2)
         if torch.cuda.is_available():
-            loss = loss.cuda(gpu)
+            loss = torch.nn.DataParallel(loss).cuda()
+            #loss = loss.cuda(gpu)
         self.loss = loss
         self.loss.name = loss_name
         self.gpu = gpu
