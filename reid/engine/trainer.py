@@ -187,6 +187,7 @@ def do_train(
 def do_train_with_center(
         cfg,
         model,
+        cosface,
         center_criterion,
         train_loader,
         val_loader,
@@ -210,10 +211,17 @@ def do_train_with_center(
     checkpointer = ModelCheckpoint(output_dir, cfg.MODEL.NAME, checkpoint_period, n_saved=10, require_empty=False)
     timer = Timer(average=True)
 
-    trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpointer, {'model': model,
-                                                                     'optimizer': optimizer,
-                                                                     'center_param': center_criterion,
-                                                                     'optimizer_center': optimizer_center})
+    if cosface is None:
+        trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpointer, {'model': model,
+                                                                         'optimizer': optimizer,
+                                                                         'center_param': center_criterion,
+                                                                         'optimizer_center': optimizer_center})
+    else:
+        trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpointer, {'model': model,
+                                                                         'optimizer': optimizer,
+                                                                         'cosface_param': cosface,
+                                                                         'center_param': center_criterion,
+                                                                         'optimizer_center': optimizer_center})
 
     timer.attach(trainer, start=Events.EPOCH_STARTED, resume=Events.ITERATION_STARTED,
                  pause=Events.ITERATION_COMPLETED, step=Events.ITERATION_COMPLETED)

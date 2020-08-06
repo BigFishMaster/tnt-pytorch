@@ -5,4 +5,5 @@
 """
 
 from .build import make_optimizer, make_optimizer_with_center
+from .build import make_optimizer_with_cosface_center
 from .lr_scheduler import WarmupMultiStepLR

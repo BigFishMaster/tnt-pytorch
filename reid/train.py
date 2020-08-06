@@ -17,6 +17,7 @@ from reid.engine.trainer import do_train, do_train_with_center
 from reid.modeling import build_model
 from reid.layers import make_loss, make_loss_with_center
 from reid.solver import make_optimizer, make_optimizer_with_center, WarmupMultiStepLR
+from reid.solver import make_optimizer_with_cosface_center
 
 from reid.utils.logger import setup_logger
 
@@ -67,8 +68,13 @@ def train(cfg):
         )
     elif cfg.MODEL.IF_WITH_CENTER == 'yes':
         print('Train with center loss, the loss type is', cfg.MODEL.METRIC_LOSS_TYPE)
-        loss_func, center_criterion = make_loss_with_center(cfg, num_classes)  # modified by gu
-        optimizer, optimizer_center = make_optimizer_with_center(cfg, model, center_criterion)
+        cosface = None
+        if cfg.MODEL.METRIC_LOSS_TYPE == "triplet_cosface_center":
+            loss_func, center_criterion, cosface = make_loss_with_center(cfg, num_classes)
+            optimizer, optimizer_center = make_optimizer_with_cosface_center(cfg, model, cosface, center_criterion)
+        else:
+            loss_func, center_criterion = make_loss_with_center(cfg, num_classes)
+            optimizer, optimizer_center = make_optimizer_with_center(cfg, model, center_criterion)
 
         # Add for using self trained model
         if cfg.MODEL.PRETRAIN_CHOICE == 'self':
@@ -78,6 +84,10 @@ def train(cfg):
             print('Path to the checkpoint of optimizer:', path_to_optimizer)
             path_to_center_param = cfg.MODEL.PRETRAIN_PATH.replace('model', 'center_param')
             print('Path to the checkpoint of center_param:', path_to_center_param)
+            if cfg.MODEL.METRIC_LOSS_TYPE == "triplet_cosface_center":
+                path_to_cosface_param = cfg.MODEL.PRETRAIN_PATH.replace('model', 'cosface_param')
+                print('Path to the checkpoint of cosface_param:', path_to_cosface_param)
+                cosface.load_state_dict(torch.load(path_to_cosface_param))
             path_to_optimizer_center = cfg.MODEL.PRETRAIN_PATH.replace('model', 'optimizer_center')
             print('Path to the checkpoint of optimizer_center:', path_to_optimizer_center)
             model.load_state_dict(torch.load(cfg.MODEL.PRETRAIN_PATH))
@@ -109,6 +119,7 @@ def train(cfg):
         do_train_with_center(
             cfg,
             model,
+            cosface,
             center_criterion,
             train_loader,
             val_loader,
