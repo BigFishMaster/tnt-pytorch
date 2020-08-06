@@ -23,9 +23,13 @@ class RandomIdentitySampler(Sampler):
     - batch_size (int): number of examples in a batch.
     """
 
-    def __init__(self, data_source, batch_size, num_instances):
+    def __init__(self, data_source, batch_size, epoch_size, num_instances):
         self.data_source = data_source
         self.batch_size = batch_size
+        self.epoch_size = epoch_size
+        if self.epoch_size > 0:
+            assert self.epoch_size % self.batch_size == 0, "epoch size {} cannot be divided by batch size {}".format(
+                self.epoch_size, self.batch_size)
         self.num_instances = num_instances
         self.num_pids_per_batch = self.batch_size // self.num_instances
         self.index_dic = defaultdict(list)
@@ -71,6 +75,8 @@ class RandomIdentitySampler(Sampler):
                 if len(batch_idxs_dict[pid]) == 0:
                     avai_pids.remove(pid)
 
+        if self.epoch_size > 0:
+            final_idxs = final_idxs[:self.epoch_size]
         self.length = len(final_idxs)
         return iter(final_idxs)
 

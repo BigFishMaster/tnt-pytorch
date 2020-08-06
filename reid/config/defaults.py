@@ -50,6 +50,7 @@ _C.MODEL.IF_LABELSMOOTH = 'on'
 _C.INPUT = CN()
 # Size of the image during training
 _C.INPUT.SIZE_TRAIN = [384, 128]
+_C.INPUT.SCALE = 1
 # Size of the image during test
 _C.INPUT.SIZE_TEST = [384, 128]
 # Random probability for image horizontal flip
@@ -140,6 +141,7 @@ _C.SOLVER.EVAL_PERIOD = 50
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch
 _C.SOLVER.IMS_PER_BATCH = 64
+_C.SOLVER.IMS_PER_EPOCH = -1
 
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch
