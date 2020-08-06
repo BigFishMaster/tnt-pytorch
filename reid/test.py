@@ -6,14 +6,13 @@
 
 import argparse
 import os
-import sys
 from os import mkdir
 
 import torch
 from torch.backends import cudnn
 
 from reid.config import cfg
-from reid.data import make_data_loader
+from reid.data import make_inference_data_loader
 from reid.engine.inference import inference
 from reid.modeling import build_model
 from reid.utils.logger import setup_logger
@@ -29,8 +28,6 @@ def main():
 
     args = parser.parse_args()
 
-    num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
-
     if args.config_file != "":
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
@@ -41,7 +38,6 @@ def main():
         mkdir(output_dir)
 
     logger = setup_logger("reid_baseline", output_dir, 0)
-    logger.info("Using {} GPUS".format(num_gpus))
     logger.info(args)
 
     if args.config_file != "":
@@ -53,13 +49,14 @@ def main():
 
     cudnn.benchmark = True
 
-    train_loader, val_loader, num_query, num_classes = make_data_loader(cfg)
+    infer_loader = make_inference_data_loader(cfg)
+    num_classes = cfg.DATASETS.NUM_CLASSES
     model = build_model(cfg, num_classes)
     if torch.cuda.is_available():
         model = torch.nn.DataParallel(model).cuda()
-    model.load_param(cfg.TEST.WEIGHT)
+    model.load_param(cfg.TEST.MODEL_WEIGHT)
 
-    inference(cfg, model, val_loader, num_query)
+    inference(cfg, model, infer_loader)
 
 
 if __name__ == '__main__':

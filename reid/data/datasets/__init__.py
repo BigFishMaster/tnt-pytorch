@@ -6,6 +6,7 @@
 # from .cuhk03 import CUHK03
 from .landmark import Landmark
 from .dataset_loader import ImageDataset
+from .dataset_loader import ImageDatasetInference
 
 __factory = {
     "landmark": Landmark,

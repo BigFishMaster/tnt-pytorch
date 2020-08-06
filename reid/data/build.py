@@ -7,10 +7,10 @@
 from torch.utils.data import DataLoader
 
 from .collate_batch import train_collate_fn, val_collate_fn
-from .datasets import ImageDataset
-from .samplers import RandomIdentitySampler, RandomIdentitySampler_alignedreid  # New add by gu
+from .datasets import ImageDataset, ImageDatasetInference
+from .samplers import RandomIdentitySampler
 from .transforms import build_transforms
-from .datasets.landmark import Landmark
+from .datasets.landmark import Landmark, LandmarkInference
 
 
 def make_data_loader(cfg):
@@ -39,3 +39,15 @@ def make_data_loader(cfg):
         collate_fn=val_collate_fn
     )
     return train_loader, val_loader, len(dataset.query)
+
+
+def make_inference_data_loader(cfg):
+    infer_transforms = build_transforms(cfg, is_train=False)
+    num_workers = cfg.DATALOADER.NUM_WORKERS
+    dataset = LandmarkInference(cfg.TEST.INPUT_FILE)
+
+    infer_set = ImageDatasetInference(dataset.infer, infer_transforms)
+    infer_loader = DataLoader(
+        infer_set, batch_size=cfg.TEST.IMS_PER_BATCH, shuffle=False, num_workers=num_workers,
+    )
+    return infer_loader

@@ -22,3 +22,18 @@ class Landmark:
             camera = int(camera)
             dataset.append((path, label, camera))
         return dataset
+
+
+class LandmarkInference:
+
+    def __init__(self, test_file):
+        super(LandmarkInference, self).__init__()
+        self.infer = self._load_txt(test_file)
+
+    def _load_txt(self, path):
+        input = open(path, "r").readlines()
+        dataset = []
+        for i, item in enumerate(input):
+            path = item.strip()
+            dataset.append(path)
+        return dataset
