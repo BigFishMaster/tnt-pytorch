@@ -2,6 +2,7 @@ import torch
 
 
 def inference(cfg, model, infer_loader):
+    model.eval()
     file_name = cfg.TEST.OUTPUT_FILE
     fout = open(file_name, "w")
     with torch.no_grad():
