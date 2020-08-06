@@ -14,10 +14,10 @@ def build_transforms(cfg, is_train=True):
     if is_train:
         target_size = cfg.INPUT.SIZE_TRAIN
         scale = cfg.INPUT.SCALE
-        scaled_size = int(target_size/scale)
+        scaled_size = [int(t/scale) for t in target_size]
         if scale < 1:
             transform = T.Compose([
-                T.Resize((scaled_size, scaled_size)),
+                T.Resize(scaled_size),
                 T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
                 T.RandomCrop(cfg.INPUT.SIZE_TRAIN),
                 T.ToTensor(),
