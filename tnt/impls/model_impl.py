@@ -10,6 +10,7 @@ from tnt.layers import MultiPoolingModel
 
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
+                 swish=False,
                  extract_feature=False, multiple_pooling=False, mp_layers="conv+relu"):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path

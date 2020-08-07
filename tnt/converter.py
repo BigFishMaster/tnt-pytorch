@@ -155,6 +155,8 @@ def convert(config):
         os.makedirs(output_dir)
     extract_feature = config["extract_feature"]
     model = ModelImpl(model_name, num_classes, extract_feature=extract_feature).model
+    if "efficientnet" in model_name:
+        model.set_swish(memory_efficient=False)
 
     logger.info("loading model name {} is ok.".format(model_name))
 
