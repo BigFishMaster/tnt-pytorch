@@ -11,6 +11,7 @@ from .models.utils import model_names
 from .models.facenet import *
 from .models.resnest import *
 from .models.efficientnet import *
+from .models.efficientnet_pytorch import *
 from .models.billion_scale_models import resnet18_ssl
 from .models.billion_scale_models import resnet18_swsl
 from .models.billion_scale_models import resnet50_ssl
