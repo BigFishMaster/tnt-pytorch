@@ -177,6 +177,8 @@ class EfficientNet(nn.Module):
         bn_mom = 1 - self._global_params.batch_norm_momentum
         bn_eps = self._global_params.batch_norm_epsilon
 
+        self.extract_feature = self._global_params.extract_feature
+
         # Get stem static or dynamic convolution depending on image size
         image_size = global_params.image_size
         Conv2d = get_same_padding_conv2d(image_size=image_size)
@@ -215,11 +217,16 @@ class EfficientNet(nn.Module):
         self._conv_head = Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
         self._bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps)
 
-        # Final linear layer
-        self._avg_pooling = nn.AdaptiveAvgPool2d(1)
-        self._dropout = nn.Dropout(self._global_params.dropout_rate)
-        self._fc = nn.Linear(out_channels, self._global_params.num_classes)
         self._swish = MemoryEfficientSwish()
+        if not self.extract_feature:
+            # Final linear layer
+            self._avg_pooling = nn.AdaptiveAvgPool2d(1)
+            self._dropout = nn.Dropout(self._global_params.dropout_rate)
+            self._fc = nn.Linear(out_channels, self._global_params.num_classes)
+
+    def get_out_channels(self):
+        out_channels = round_filters(1280, self._global_params)
+        return out_channels
 
     def set_swish(self, memory_efficient=True):
         """Sets swish function as memory efficient (for training) or standard (for export).
@@ -313,6 +320,8 @@ class EfficientNet(nn.Module):
         """
         # Convolution layers
         x = self.extract_features(inputs)
+        if self.extract_feature:
+            return x
 
         # Pooling and final linear layer
         x = self._avg_pooling(x)
@@ -376,7 +385,7 @@ class EfficientNet(nn.Module):
         Returns:
             A pretrained efficientnet model.
         """
-        model = cls.from_name(model_name, num_classes = num_classes, **override_params)
+        model = cls.from_name(model_name, num_classes=num_classes, **override_params)
         load_pretrained_weights(model, model_name, weights_path=weights_path, load_fc=(num_classes == 1000), advprop=advprop)
         model._change_in_channels(in_channels)
         return model

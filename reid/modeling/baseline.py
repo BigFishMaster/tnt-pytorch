@@ -132,6 +132,9 @@ class Baseline(nn.Module):
             self.base = models.__dict__[model_name](pretrained=None, multiple_pooling=True)
         elif model_name == "resnest200":
             self.base = models.__dict__[model_name](pretrained=None, multiple_pooling=True)
+        elif "efficientnet" in model_name:
+            self.base = models.__dict__[model_name](pretrained=True, extract_feature=True)
+            self.in_planes = self.base.get_out_channels()
 
         if pretrain_choice == 'imagenet':
             self.base.load_param(model_path)

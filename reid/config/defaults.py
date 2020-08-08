@@ -1,4 +1,5 @@
 from yacs.config import CfgNode as CN
+import os
 
 # -----------------------------------------------------------------------------
 # Convention about Training / Test specific parameters
@@ -14,6 +15,7 @@ from yacs.config import CfgNode as CN
 # Config definition
 # -----------------------------------------------------------------------------
 
+os.environ["TORCH_HOME"] = "./pretrained/"
 _C = CN()
 
 _C.MODEL = CN()
