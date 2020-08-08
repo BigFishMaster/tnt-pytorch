@@ -56,7 +56,7 @@ class ModelImpl:
                 out_features = model.last_linear.out_features
                 if out_features != num_classes:
                     model.last_linear = nn.Linear(in_features, num_classes)
-            # for billionscale models
+            # for billionscale models and resnest
             elif hasattr(model, "fc"):  #  model.fc
                 last_layer_name = "fc"
                 in_features = model.fc.in_features
