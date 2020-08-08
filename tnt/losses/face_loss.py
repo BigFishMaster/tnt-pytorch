@@ -107,17 +107,24 @@ class MultipleCosFaceLoss(nn.Module):
         self.out_features = num_classes
         self.s = s
         self.m = m
-        self.weight = nn.Parameter(torch.FloatTensor(1, 16, self.in_features, self.out_features))
-
+        self.neck = nn.Parameter(torch.FloatTensor(1, 16, self.in_features, 64))
+        self.weight = nn.Parameter(torch.FloatTensor(1, 16, 64, self.out_features))
+        nn.init.xavier_normal_(self.neck)
         nn.init.xavier_uniform_(self.weight)
 
         self.ce = nn.CrossEntropyLoss()
 
     def output(self, feature):
-        # f: B x 16 x norm(C) x 1
-        # w: 1 x 16 x norm(C) x D
-        # o: B x 16 x C x D
-        cosine = F.normalize(feature, dim=2) * F.normalize(self.weight, 2)
+        # feature:      B x 16 x C x 1
+        # neck:         1 x 16 x C x 64
+        # neck_feature: B x 16 x C x 64
+        neck_feature = feature * self.neck
+        # neck_feature: B x 16 x 64 x 1
+        neck_feature = neck_feature.sum(dim=2).unsqueeze(3)
+        # neck_feature: B x 16 x norm(64) x 1
+        # weight:       1 x 16 x norm(64) x D
+        # cosine:       B x 16 x 64 x D
+        cosine = F.normalize(neck_feature, dim=2) * F.normalize(self.weight, 2)
         # o: B x 16 x D
         cosine = cosine.sum(dim=2)
         return cosine
