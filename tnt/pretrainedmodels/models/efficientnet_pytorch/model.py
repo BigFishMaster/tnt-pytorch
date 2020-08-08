@@ -24,12 +24,12 @@ from .utils import (
 
 
 VALID_MODELS = (
-    'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3',
-    'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6', 'efficientnet-b7',
-    'efficientnet-b8',
+    'efficientnet_b0_pytorch', 'efficientnet_b1_pytorch', 'efficientnet_b2_pytorch', 'efficientnet_b3_pytorch',
+    'efficientnet_b4_pytorch', 'efficientnet_b5_pytorch', 'efficientnet_b6_pytorch', 'efficientnet_b7_pytorch',
+    'efficientnet_b8_pytorch',
 
     # Support the construction of 'efficientnet-l2' without pretrained weights
-    'efficientnet-l2'
+    'efficientnet_l2_pytorch'
 )
 
 
@@ -415,7 +415,7 @@ class EfficientNet(nn.Module):
             bool: Is a valid name or not.
         """
         if model_name not in VALID_MODELS:
-            raise ValueError('model_name should be one of: ' + ', '.join(VALID_MODELS))
+            raise ValueError('model_name is ' + model_name + ', but should be one of: ' + ', '.join(VALID_MODELS))
 
     def _change_in_channels(self, in_channels):
         """Adjust model's first convolution layer to in_channels, if in_channels not equals 3.
@@ -430,7 +430,7 @@ class EfficientNet(nn.Module):
 
 
 def efficientnet_b0_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b0"
+    model_name = "efficientnet_b0_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -439,7 +439,7 @@ def efficientnet_b0_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b1_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b1"
+    model_name = "efficientnet_b1_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -448,7 +448,7 @@ def efficientnet_b1_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b2_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b2"
+    model_name = "efficientnet_b2_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -457,7 +457,7 @@ def efficientnet_b2_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b3_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b3"
+    model_name = "efficientnet_b3_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -466,7 +466,7 @@ def efficientnet_b3_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b4_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b4"
+    model_name = "efficientnet_b4_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -475,7 +475,7 @@ def efficientnet_b4_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b5_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b5"
+    model_name = "efficientnet_b5_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -484,7 +484,7 @@ def efficientnet_b5_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b6_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b6"
+    model_name = "efficientnet_b6_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -493,7 +493,7 @@ def efficientnet_b6_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b7_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b7"
+    model_name = "efficientnet_b7_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -502,7 +502,7 @@ def efficientnet_b7_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_b8_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-b8"
+    model_name = "efficientnet_b8_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:
@@ -511,7 +511,7 @@ def efficientnet_b8_pytorch(pretrained=False, **kwargs):
 
 
 def efficientnet_l2_pytorch(pretrained=False, **kwargs):
-    model_name = "efficientnet-l2"
+    model_name = "efficientnet_l2_pytorch"
     if pretrained:
         model = EfficientNet.from_pretrained(model_name, **kwargs)
     else:

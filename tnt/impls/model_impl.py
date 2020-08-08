@@ -64,6 +64,13 @@ class ModelImpl:
                 out_features = model.fc.out_features
                 if out_features != num_classes:
                     model.fc = nn.Linear(in_features, num_classes)
+            # for efficienetnet_pytorch
+            elif hasattr(model, "_fc"):
+                last_layer_name = "fc"
+                in_features = model._fc.in_features
+                out_features = model._fc.out_features
+                if out_features != num_classes:
+                    model._fc = nn.Linear(in_features, num_classes)
             # for squeezenet
             elif hasattr(model, "last_conv"):
                 last_layer_name = "last_conv"
