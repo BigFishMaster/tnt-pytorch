@@ -162,6 +162,12 @@ class EfficientNet(nn.Module):
 
     def __init__(self, blocks_args=None, global_params=None):
         super().__init__()
+        self.input_space = "RGB"
+        self.input_range = [0, 1]
+        image_size = global_params.image_size
+        self.input_size = [3, image_size, image_size]
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
         assert isinstance(blocks_args, list), 'blocks_args should be a list'
         assert len(blocks_args) > 0, 'block args must be greater than 0'
         self._global_params = global_params
