@@ -273,7 +273,10 @@ class ModelBuilder:
                     if self.hard_sampling:
                         with torch.no_grad():
                             data_iter.sampler.update(output, target)
-                    loss.backward()
+                    if len(loss.size()) > 0:
+                        loss.sum().backward()
+                    else:
+                        loss.backward()
                     if (step+1) % self.accum_steps == 0:
                         self.lr_strategy.set_lr(optimizer=self.optimizer,
                                                 epoch=self.train_epochs, step=self.train_steps)

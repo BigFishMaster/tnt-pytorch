@@ -149,7 +149,7 @@ class MultipleCosFaceLoss(nn.Module):
             loss = self.ce(output * self.s, label)
             total_loss += loss
         out_cosine = cosines.reshape(B*16, -1)
-        return total_loss, out_cosine
+        return total_loss.unsqueeze(0), out_cosine
 
 
 if __name__ == "__main__":
