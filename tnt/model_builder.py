@@ -274,7 +274,8 @@ class ModelBuilder:
                         with torch.no_grad():
                             data_iter.sampler.update(output, target)
                     if len(loss.size()) > 0:
-                        loss.sum().backward()
+                        loss = loss.sum()
+                        loss.backward()
                     else:
                         loss.backward()
                     if (step+1) % self.accum_steps == 0:
@@ -291,7 +292,10 @@ class ModelBuilder:
                     out_loss.append(self.loss.loss1)
                     out_loss.append(self.loss.loss2)
                 else:
-                    out_loss = [loss.item()]
+                    if len(loss.size()) > 0:
+                        out_loss = [loss.sum().item()]
+                    else:
+                        out_loss = [loss.item()]
                 if metric_output is not None:
                     batch_stats = self.metric(output=metric_output, target=target[-1] if isinstance(target, list) else target,
                                               loss=out_loss)
