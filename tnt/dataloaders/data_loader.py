@@ -44,7 +44,7 @@ class GeneralDataLoader(Dataset):
         pin_memory = cfg["pin_memory"]
         data_loader = DataLoader(self, batch_size=self.batch_size, shuffle=is_shuffle,
                                  num_workers=self.num_workers, collate_fn=self.collate_fn,
-                                 pin_memory=pin_memory, sampler=self.sampler, drop_last=(mode == "train"))
+                                 pin_memory=pin_memory, sampler=self.sampler, drop_last=(mode != "test"))
         logger.info("data loader is: {}".format(beautify_info(data_loader)))
         return data_loader
 
