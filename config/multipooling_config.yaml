@@ -2,7 +2,7 @@ preserve_aspect_ratio: 0
 #image_size: 224
 data:
   # In metric learning, num_features is used to initialize the last layer.
-  num_features: 512
+  num_features: 128
   num_classes: 100
   mode: [train, valid]
   train: ../tests/data/metric_data/train.txt

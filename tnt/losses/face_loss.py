@@ -107,25 +107,17 @@ class MultipleCosFaceLoss(nn.Module):
         self.out_features = num_classes
         self.s = s
         self.m = m
-        self.neck = nn.Parameter(torch.FloatTensor(1, 16, self.in_features, 64))
-        self.weight = nn.Parameter(torch.FloatTensor(1, 16, 64, self.out_features))
-        nn.init.xavier_normal_(self.neck)
+        self.weight = nn.Parameter(torch.FloatTensor(1, 16, self.in_features, self.out_features))
         nn.init.xavier_uniform_(self.weight)
 
         self.ce = nn.CrossEntropyLoss()
 
     def output(self, feature):
-        # feature:      B x 16 x C x 1
-        # neck:         1 x 16 x C x 64
-        # neck_feature: B x 16 x C x 64
-        neck_feature = feature * self.neck
-        # neck_feature: B x 16 x 64 x 1
-        neck_feature = neck_feature.sum(dim=2).unsqueeze(3)
-        # neck_feature: B x 16 x norm(64) x 1
-        # weight:       1 x 16 x norm(64) x D
-        # cosine:       B x 16 x 64 x D
-        cosine = F.normalize(neck_feature, dim=2) * F.normalize(self.weight, 2)
-        # o: B x 16 x D
+        # feature:      B x 16 x norm(C) x 1
+        # weight:       1 x 16 x norm(C) x D
+        # cosine:       B x 16 x C x D
+        cosine = F.normalize(feature, dim=2) * F.normalize(self.weight, dim=2)
+        # cosine: B x 16 x D
         cosine = cosine.sum(dim=2)
         return cosine
 
@@ -148,15 +140,16 @@ class MultipleCosFaceLoss(nn.Module):
             output[range(batch_size), label] = phi[range(batch_size), label]
             loss = self.ce(output * self.s, label)
             total_loss += loss
+        total_loss = total_loss / 16
         out_cosine = cosines.reshape(B*16, -1)
         return total_loss.unsqueeze(0), out_cosine
 
 
 if __name__ == "__main__":
-    feature = torch.rand((10, 8192))
+    feature = torch.rand((10, 2048))
     label = torch.randint(0, 100, size=(160,))
 
-    loss_func = MultipleCosFaceLoss(512, 100)
+    loss_func = MultipleCosFaceLoss(128, 100)
     output = loss_func(feature, label)
     print("ok.")
 
