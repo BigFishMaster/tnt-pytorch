@@ -1,1 +1,12 @@
-
+from .models import bit_m_r50x1
+from .models import bit_m_r50x3
+from .models import bit_m_r101x1
+from .models import bit_m_r101x3
+from .models import bit_m_r152x2
+from .models import bit_m_r152x4
+from .models import bit_s_r50x1
+from .models import bit_s_r50x3
+from .models import bit_s_r101x1
+from .models import bit_s_r101x3
+from .models import bit_s_r152x2
+from .models import bit_s_r152x4

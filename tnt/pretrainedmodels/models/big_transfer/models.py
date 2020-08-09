@@ -23,6 +23,22 @@ import torch.nn.functional as F
 import numpy as np
 
 
+model_names = [
+ "bit_m_r50x1",
+ "bit_m_r50x3",
+ "bit_m_r101x1",
+ "bit_m_r101x3",
+ "bit_m_r152x2",
+ "bit_m_r152x4",
+ "bit_s_r50x1",
+ "bit_s_r50x3",
+ "bit_s_r101x1",
+ "bit_s_r101x3",
+ "bit_s_r152x2",
+ "bit_s_r152x4",
+]
+
+
 class StdConv2d(nn.Conv2d):
 
   def forward(self, x):
