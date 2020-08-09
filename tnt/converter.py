@@ -175,7 +175,7 @@ def convert(config):
         logger.info("loading model weights, missing_keys:{}, unexcepted_keys:{}"
                     .format(missing_keys, unexpected_keys))
     else:
-        raise FileNotFoundError("the path of model weights does not exist.")
+        logger.warn("the path of model weights does not exist.")
 
     output_onnx_name = os.path.join(output_dir, model_name + ".onnx")
 
