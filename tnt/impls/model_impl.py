@@ -26,6 +26,8 @@ class ModelImpl:
             elif extract_feature:
                 kwargs = {"extract_feature": extract_feature}
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
+            elif "bit" in model_name: # Big Transfer
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
             else:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)
