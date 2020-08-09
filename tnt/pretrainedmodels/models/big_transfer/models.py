@@ -43,7 +43,10 @@ class StdConv2d(nn.Conv2d):
 
   def forward(self, x):
     w = self.weight
-    v, m = torch.var_mean(w, dim=[1, 2, 3], keepdim=True, unbiased=False)
+    #v, m = torch.var_mean(w, dim=[1, 2, 3], keepdim=True, unbiased=False)
+    s = w.std(dim=[1,2,3], keepdim=True)
+    m = w.mean(dim=[1,2,3], keepdim=True)
+    v = s * s
     w = (w - m) / torch.sqrt(v + 1e-10)
     return F.conv2d(x, w, self.bias, self.stride, self.padding,
                     self.dilation, self.groups)
@@ -129,6 +132,13 @@ class ResNetV2(nn.Module):
 
   def __init__(self, block_units, width_factor, head_size=21843, zero_head=False):
     super().__init__()
+
+    self.input_space = "RGB"
+    self.input_range = [0, 1]
+    self.input_size = [3, 224, 224]
+    self.mean = [0.5, 0.5, 0.5]
+    self.std = [0.5, 0.5, 0.5]
+
     wf = width_factor  # shortcut 'cause we'll use it a lot.
 
     # The following will be unreadable if we split lines.
