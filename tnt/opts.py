@@ -82,6 +82,8 @@ def basic_opts(parser):
                         help="Use multiple pooling for conv5.")
     parser.add_argument("--mp_layers", default="conv+relu", type=str,
                         help="multiple pooling layers.")
+    parser.add_argument("--use_head", default=1, type=int,
+                        help="the head index of SimCLRV2 to finetune.")
 
 
 def convert_opts(parser):

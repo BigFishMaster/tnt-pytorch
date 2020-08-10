@@ -13,6 +13,7 @@ from .models.resnest import *
 from .models.efficientnet import *
 from .models.efficientnet_pytorch import *
 from .models.big_transfer import *
+from .models.resnet_wider import *
 from .models.billion_scale_models import resnet18_ssl
 from .models.billion_scale_models import resnet18_swsl
 from .models.billion_scale_models import resnet50_ssl

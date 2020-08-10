@@ -6,11 +6,14 @@ from tnt.utils.logging import logger
 import tnt.pretrainedmodels as pretrainedmodels
 import torch.nn as nn
 from tnt.layers import MultiPoolingModel
+from tnt.pretrainedmodels.models.resnet_wider.resnet_wider \
+    import model_names as res_wider_model_names
 
 
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
-                 extract_feature=False, multiple_pooling=False, mp_layers="conv+relu"):
+                 extract_feature=False, multiple_pooling=False, mp_layers="conv+relu",
+                 use_head=1):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -28,6 +31,8 @@ class ModelImpl:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             elif "bit" in model_name: # Big Transfer
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
+            elif model_name in res_wider_model_names:
+                model = pretrainedmodels.__dict__[model_name](use_head=use_head, num_classes=num_classes)
             else:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)
@@ -106,6 +111,7 @@ class ModelImpl:
         extract_feature = config["extract_feature"]
         multiple_pooling = config["multiple_pooling"]
         mp_layers = config["mp_layers"]
+        use_head = config["use_head"]
         self = cls(model_name, num_classes, pretrained, gpu, extract_feature,
-                   multiple_pooling, mp_layers)
+                   multiple_pooling, mp_layers, use_head)
         return self.model

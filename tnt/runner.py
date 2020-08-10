@@ -76,6 +76,7 @@ def create_config():
     config["model"]["extract_feature"] = config["extract_feature"]
     config["model"]["multiple_pooling"] = config["multiple_pooling"]
     config["model"]["mp_layers"] = config["mp_layers"]
+    config["model"]["use_head"] = config["use_head"]
     config["loss"]["gpu"] = config["global"]["gpu"]
     config["loss"]["relativelabelloss_gamma"] = config["relativelabelloss_gamma"]
     config["loss"]["num_classes"] = config["data"]["num_classes"]

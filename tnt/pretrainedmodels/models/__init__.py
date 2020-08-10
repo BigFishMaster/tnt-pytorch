@@ -10,6 +10,8 @@ from .efficientnet_pytorch import *
 
 from .big_transfer import *
 
+from .resnet_wider import *
+
 from .billion_scale_models import resnet18_ssl
 from .billion_scale_models import resnet18_swsl
 from .billion_scale_models import resnet50_ssl
