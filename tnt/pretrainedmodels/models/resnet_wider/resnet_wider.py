@@ -144,6 +144,11 @@ class ResNet(nn.Module):
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
                  norm_layer=None, width_mult=1, sk_ratio=0.0, use_head=2):
         super(ResNet, self).__init__()
+        self.input_space = "RGB"
+        self.input_range = [0, 1]
+        self.input_size = [3, 224, 224]
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
