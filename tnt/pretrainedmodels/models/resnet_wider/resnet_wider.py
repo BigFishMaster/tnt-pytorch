@@ -286,33 +286,30 @@ class ResNet(nn.Module):
         return self._forward_impl(x)
 
 
-def resnet50x1(**kwargs):
-    use_head = kwargs.get("use_head", 2)
-    return ResNet(Bottleneck, [3, 4, 6, 3], width_mult=1, use_head=use_head)
-
-
-def resnet50x2(**kwargs):
-    use_head = kwargs.get("use_head", 2)
-    num_classes = kwargs.get("num_classes", 1000)
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, width_mult=2, use_head=use_head)
-
-
-def resnet50x4(**kwargs):
-    use_head = kwargs.get("use_head", 2)
-    num_classes = kwargs.get("num_classes", 1000)
-    return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, width_mult=4, use_head=use_head)
-
-
 def resnet101x1_sk(**kwargs):
     use_head = kwargs.get("use_head", 2)
     num_classes = kwargs.get("num_classes", 1000)
-    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, width_mult=1, sk_ratio=0.0625, use_head=use_head)
+    pretrained = kwargs.get("pretrained", None)
+    model = ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, width_mult=1, sk_ratio=0.0625, use_head=use_head)
+    if pretrained:
+        checkpoint = torch.load(pretrained)
+        state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
+        print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
+            missing_keys, unexcepted_keys))
 
 
 def resnet101x1(**kwargs):
     use_head = kwargs.get("use_head", 2)
     num_classes = kwargs.get("num_classes", 1000)
-    return ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, width_mult=1, sk_ratio=0, use_head=use_head)
+    pretrained = kwargs.get("pretrained", None)
+    model = ResNet(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, width_mult=1, sk_ratio=0, use_head=use_head)
+    if pretrained:
+        checkpoint = torch.load(pretrained)
+        state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
+        print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
+            missing_keys, unexcepted_keys))
 
 
 if __name__ == "__main__":

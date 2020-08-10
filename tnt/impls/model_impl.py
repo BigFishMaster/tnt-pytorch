@@ -32,7 +32,8 @@ class ModelImpl:
             elif "bit" in model_name: # Big Transfer
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
             elif model_name in res_wider_model_names:
-                model = pretrainedmodels.__dict__[model_name](use_head=use_head, num_classes=num_classes)
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, use_head=use_head,
+                                                              num_classes=num_classes)
             else:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)

@@ -136,9 +136,9 @@ class ModelBuilder:
             state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
             logger.info("keep the weights of last layer:{}".format(self.keep_last_layer))
             if self.keep_last_layer:
-                missing_keys, unexpected_keys = self.model.load_state_dict(state_dict, strict=False)
+                missing_keys, unexcepted_keys = self.model.load_state_dict(state_dict, strict=False)
                 logger.info("In keep_last_layer, loading model weights, missing_keys:{}, unexcepted_keys:{}".format(
-                    missing_keys, unexpected_keys))
+                    missing_keys, unexcepted_keys))
             else:
                 last_layer_name = self.model.last_layer_name
                 if list(state_dict.keys())[0].startswith("module"):
