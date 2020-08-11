@@ -33,7 +33,7 @@ class SK_Conv2d(nn.Module):
         x = self.bn1(x)
         x = self.relu(x)
         half = x.shape[1] // 2
-        x = torch.stack(torch.split(x, [half, half], dim=1))
+        x = torch.stack(torch.split(x, [self.out_planes, self.out_planes], dim=1))
         global_features = torch.mean(torch.sum(x, dim=0), dim=[2, 3], keepdim=True)
         global_features = self.conv2(global_features)
         global_features = self.bn2(global_features)
@@ -147,8 +147,8 @@ class ResNet(nn.Module):
         self.input_space = "RGB"
         self.input_range = [0, 1]
         self.input_size = [3, 224, 224]
-        self.mean = [0.485, 0.456, 0.406]
-        self.std = [0.229, 0.224, 0.225]
+        self.mean = [0.0, 0.0, 0.0]
+        self.std = [1.0, 1.0, 1.0]
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
