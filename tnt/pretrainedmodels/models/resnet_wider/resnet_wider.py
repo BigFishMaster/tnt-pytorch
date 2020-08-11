@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-model_names = ["resnet101x1", "resnet101x1_sk"]
+model_names = ["resnet101x1", "resnet101x1_sk", "resnet152x1", "resnet152x1_sk"]
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
