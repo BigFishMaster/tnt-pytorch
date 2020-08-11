@@ -32,8 +32,7 @@ class ModelImpl:
             elif "bit" in model_name: # Big Transfer
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
             elif model_name in res_wider_model_names:
-                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, use_head=use_head,
-                                                              num_classes=num_classes)
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, use_head=use_head)
             else:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained)
             logger.info("model pretrained: %s", pretrained)
@@ -64,7 +63,7 @@ class ModelImpl:
                 out_features = model.last_linear.out_features
                 if out_features != num_classes:
                     model.last_linear = nn.Linear(in_features, num_classes)
-            # for billionscale models and resnest
+            # for billionscale models, resnest, SimCLRV2(e.g.: resnet101x1_sk)
             elif hasattr(model, "fc"):  #  model.fc
                 last_layer_name = "fc"
                 in_features = model.fc.in_features

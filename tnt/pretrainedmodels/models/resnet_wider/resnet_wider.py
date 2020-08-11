@@ -297,6 +297,7 @@ def resnet101x1_sk(**kwargs):
         missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
         print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
             missing_keys, unexcepted_keys))
+    return model
 
 
 def resnet101x1(**kwargs):
@@ -310,6 +311,7 @@ def resnet101x1(**kwargs):
         missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
         print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
             missing_keys, unexcepted_keys))
+    return model
 
 
 if __name__ == "__main__":
