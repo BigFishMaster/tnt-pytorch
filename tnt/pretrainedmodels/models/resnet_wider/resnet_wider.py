@@ -314,6 +314,34 @@ def resnet101x1(**kwargs):
     return model
 
 
+def resnet152x1_sk(**kwargs):
+    use_head = kwargs.get("use_head", 2)
+    num_classes = kwargs.get("num_classes", 1000)
+    pretrained = kwargs.get("pretrained", None)
+    model = ResNet(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, width_mult=1, sk_ratio=0.0625, use_head=use_head)
+    if pretrained:
+        checkpoint = torch.load(pretrained)
+        state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
+        print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
+            missing_keys, unexcepted_keys))
+    return model
+
+
+def resnet152x1(**kwargs):
+    use_head = kwargs.get("use_head", 2)
+    num_classes = kwargs.get("num_classes", 1000)
+    pretrained = kwargs.get("pretrained", None)
+    model = ResNet(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, width_mult=1, sk_ratio=0, use_head=use_head)
+    if pretrained:
+        checkpoint = torch.load(pretrained)
+        state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
+        print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
+            missing_keys, unexcepted_keys))
+    return model
+
+
 if __name__ == "__main__":
     sk_conv2d = SK_Conv2d(64, 128, 2, 0.0625, 32)
     x = torch.rand(10, 64, 14, 14)
