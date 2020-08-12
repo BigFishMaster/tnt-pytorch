@@ -167,7 +167,7 @@ class ResNet(nn.Module):
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
                  last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False,
-                 multiple_pooling=False):
+                 multiple_pooling=False, last_two_layers=False):
         self.input_space = input_space
         self.input_range = input_range
         self.input_size = input_sizes
@@ -186,6 +186,7 @@ class ResNet(nn.Module):
         self.avd_first = avd_first
         self.extract_feature = extract_feature
         self.multiple_pooling = multiple_pooling
+        self.last_two_layers = last_two_layers
 
         super(ResNet, self).__init__()
         self.rectified_conv = rectified_conv
@@ -324,12 +325,15 @@ class ResNet(nn.Module):
             return x
 
         x = self.avgpool(x)
-        #x = x.view(x.size(0), -1)
         x = torch.flatten(x, 1)
         if self.drop:
             x = self.drop(x)
         if self.extract_feature:
             return x
+        elif self.last_two_layers:
+            last = self.fc(x)
+            output = torch.cat([x, last], dim=1)
+            return output
         else:
             x = self.fc(x)
 

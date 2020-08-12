@@ -12,8 +12,8 @@ from tnt.pretrainedmodels.models.resnet_wider.resnet_wider \
 
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
-                 extract_feature=False, multiple_pooling=False, mp_layers="conv+relu",
-                 use_head=1):
+                 extract_feature=False, multiple_pooling=False, last_two_layers=False,
+                 mp_layers="conv+relu", use_head=1):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -23,11 +23,14 @@ class ModelImpl:
         elif model_name_or_path in pretrainedmodels.model_names:
             model_name = model_name_or_path
             # input_space, input_size, input_range, mean, std
-            if multiple_pooling:
+            if multiple_pooling: # support resnest
                 model = MultiPoolingModel(model_name, num_classes, mp_layers, pretrained)
                 logger.info("MultiPoolingModel with name: {} and feature: {}.".format(model_name, num_classes))
-            elif extract_feature:
+            elif extract_feature: # support resnest
                 kwargs = {"extract_feature": extract_feature}
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
+            elif last_two_layers:
+                kwargs = {"last_two_layers": last_two_layers}
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             elif "bit" in model_name: # Big Transfer
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
@@ -110,8 +113,9 @@ class ModelImpl:
             num_classes = config["num_classes"]
         extract_feature = config["extract_feature"]
         multiple_pooling = config["multiple_pooling"]
+        last_two_layers = config["last_two_layers"]
         mp_layers = config["mp_layers"]
         use_head = config["use_head"]
         self = cls(model_name, num_classes, pretrained, gpu, extract_feature,
-                   multiple_pooling, mp_layers, use_head)
+                   multiple_pooling, last_two_layers, mp_layers, use_head)
         return self.model
