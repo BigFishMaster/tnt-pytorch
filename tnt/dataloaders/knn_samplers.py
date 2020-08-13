@@ -90,7 +90,7 @@ class KNNSampler(Sampler):
         torch.manual_seed(0)
         self.features = torch.rand(self.num_labels, self.dim)
         self.losses = torch.rand(self.num_labels)
-        self.knn = torch.randint(0, self.num_labels, (self.num_labels, self.knn_num))
+        self.knn = torch.randint(0, self.num_labels, (self.num_labels, self.knn_num)).tolist()
 
         data = open(filename, "r", encoding="utf8").readlines()
         dic1 = {}
