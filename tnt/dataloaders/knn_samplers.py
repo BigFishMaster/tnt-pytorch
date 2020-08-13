@@ -83,9 +83,9 @@ class KNNSampler(Sampler):
         self.knn = None
         self.knn_num = 8
         self.dim = 512
-        self.update_steps = 10
+        self.update_steps = 1000
         self.steps = 0
-        self.print_steps = self.update_steps * 10
+        self.print_steps = self.update_steps
         self.p_steps = 0
         torch.manual_seed(0)
         self.features = torch.rand(self.num_labels, self.dim)
