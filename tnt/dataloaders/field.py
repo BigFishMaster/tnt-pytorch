@@ -35,7 +35,14 @@ class Field:
             if is_auto_augment:
                 self.transforms = transforms_imagenet_train(
                     img_size=(opts.input_size[1], opts.input_size[2]),
+                    scale=(0.7, 1.0),
+                    color_jitter=0.4,
                     auto_augment=opts.transform_type,
+                    mean=opts.mean,
+                    std=opts.std,
+                    re_prob=0.5,
+                    re_mode="pixel",
+                    re_count=5,
                 )
             else:
                 self.transforms = TransformImage(opts, random_crop=True, random_hflip=True)
@@ -43,7 +50,10 @@ class Field:
             # valid and test
             if is_auto_augment:
                 self.transforms = transforms_imagenet_eval(
-                    img_size=(opts.input_size[1], opts.input_size[2])
+                    img_size=(opts.input_size[1], opts.input_size[2]),
+                    crop_pct=opts.image_scale,
+                    mean=opts.mean,
+                    std=opts.std,
                 )
             else:
                 self.transforms = TransformImage(opts)
