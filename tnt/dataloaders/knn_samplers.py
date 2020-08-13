@@ -33,6 +33,7 @@ class KNNDataLoader(Dataset):
                 "five_crop": False,
                 "ten_crop": False,
                 "preserve_aspect_ratio": 0,
+                "erase_count": None,
                 "random_erase": False,
                 "image_scale": 1.0,
                 "random_crop": False,
