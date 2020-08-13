@@ -11,16 +11,16 @@ from tnt.utils.io import load_image_from_path
 
 
 class KNNDataLoader(Dataset):
-    def __init__(self, dic1, batch_size, data_prefix):
+    def __init__(self, dic1, num_each_class, data_prefix):
         data_list = []
         num_labels = len(dic1)
         for label in range(num_labels):
             samples = dic1[label]
-            if len(samples) < batch_size:
-                samples = samples * batch_size
-                samples = samples[:batch_size]
+            if len(samples) < num_each_class:
+                samples = samples * num_each_class
+                samples = samples[:num_each_class]
             else:
-                samples = samples[:batch_size]
+                samples = samples[:num_each_class]
             data_list.extend(samples)
         self.data_list = data_list
         logger.info("In DataLoader, data length:{}".format(len(self.data_list)))
@@ -45,9 +45,9 @@ class KNNDataLoader(Dataset):
         self.transform = TransformImage(opts)
 
     @classmethod
-    def from_dict(cls, dic1, batch_size, data_prefix):
-        self = cls(dic1, batch_size, data_prefix)
-        data_loader = DataLoader(self, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    def from_dict(cls, dic1, num_each_class, batch_size, data_prefix):
+        self = cls(dic1, num_each_class, data_prefix)
+        data_loader = DataLoader(self, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
         return data_loader
 
     def __getitem__(self, index):
@@ -78,6 +78,7 @@ class KNNSampler(Sampler):
         logger.info("num_samples: {}, each_class: {}, target_num: {}, target_each_class:{}".format(
             self.num_samples, self.each_class, self.target_num, self.target_each_batch))
         # TODO: include itself.
+        self.batch_size = batch_size
         self.knn = None
         self.knn_num = 8
         self.dim = 512
@@ -97,7 +98,13 @@ class KNNSampler(Sampler):
                 dic1[label] = []
             dic1[label].append(item.strip())
         logger.info("labels to initialize knn: {}".format(len(dic1)))
-        self.dataloader = KNNDataLoader.from_dict(dic1, batch_size=5, data_prefix=data_prefix)
+        # Note: each batch will contain multiple labels, like: 0 0 0 0 1 1 1 1 2 2 2 2
+        self.num_each_class = 5
+        if self.batch_size % self.num_each_class != 0:
+            raise ValueError("When build knn trees, batch_size {} must be divided by num_each_class {}.".format(
+                self.batch_size, self.num_each_class))
+        self.dataloader = KNNDataLoader.from_dict(dic1, num_each_class=self.num_each_class, batch_size=self.batch_size,
+                                                  data_prefix=data_prefix)
 
     def build(self, model):
         model.eval()
@@ -107,13 +114,16 @@ class KNNSampler(Sampler):
                     logger.info("building knn sampler: {} labels".format(label))
                 input, target = batch
                 output = model(input)
-                feature = output.mean(0)
-                self.features[label] = feature
-                output_norm = F.normalize(output)
-                loss = 1.0 - torch.matmul(output_norm, output_norm.t()).min().item()
-                self.losses[label] = max(loss, 1e-6)
+                output = output.reshape(-1, self.num_each_class, self.dim)
+                cur_label_num = len(output)
+                for i in range(cur_label_num):
+                    # num_each_class x dim
+                    output_norm = F.normalize(output[i])
+                    one_label = int(target[i*self.num_each_class].item())
+                    self.features[one_label] = output_norm.mean(0)
+                    loss = 1.0 - torch.matmul(output_norm, output_norm.t()).min().item()
+                    self.losses[one_label] = max(loss, 1e-6)
 
-            self.features = F.normalize(self.features)
             distance = torch.matmul(self.features, self.features.t())
             _, self.knn = distance.topk(self.knn_num, 1, True, True)
             self.knn = self.knn.tolist()
