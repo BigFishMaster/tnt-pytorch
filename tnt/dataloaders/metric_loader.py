@@ -35,7 +35,7 @@ class MetricDataLoader(Dataset):
         self = cls(cfg, mode)
         pin_memory = cfg["pin_memory"]
         data_loader = DataLoader(self, batch_size=self.batch_size, num_workers=self.num_workers,
-                                 pin_memory=pin_memory, sampler=self.sampler, drop_last=(mode == "train"))
+                                 pin_memory=pin_memory, sampler=self.sampler, drop_last=(mode != "test"))
         logger.info("data loader is: {}".format(beautify_info(data_loader)))
         return data_loader
 
@@ -60,6 +60,7 @@ class MetricDataLoader(Dataset):
                 label2index[label] = []
             label2index[label].append(i)
 
+        logger.info("In mode {}, the length of label2index is {}.".format(mode, len(label2index)))
         each_class = cfg.get("each_class") or 5
         if mode == "train":
             num_samples = cfg.get("num_samples") or (len(label2index) * each_class)
