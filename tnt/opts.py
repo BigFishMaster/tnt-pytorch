@@ -88,6 +88,8 @@ def basic_opts(parser):
                         help="multiple pooling layers.")
     parser.add_argument("--use_head", default=1, type=int,
                         help="the head index of SimCLRV2 to finetune.")
+    parser.add_argument("--disable_knn_build", default=False, action="store_true",
+                        help="disable to build the KNN tree in hard sampling.")
 
 
 def convert_opts(parser):

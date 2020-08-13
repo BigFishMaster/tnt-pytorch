@@ -101,6 +101,7 @@ class ModelBuilder:
 
         # hard sampling
         self.hard_sampling = config["data"]["sampler"].get("strategy") in ["knn_sampler"]
+        self.disable_knn_build = config["disable_knn_build"]
         logger.info("whether hard sampling: {}".format(self.hard_sampling))
 
     def update(self, config):
@@ -334,7 +335,7 @@ class ModelBuilder:
             self._run_epoch(valid_iter, mode="valid")
             return
 
-        if self.hard_sampling:
+        if self.hard_sampling and (not self.disable_knn_build):
             train_iter.sampler.build(self.model)
 
         for epoch in range(self.start_epoch, self.num_epochs):

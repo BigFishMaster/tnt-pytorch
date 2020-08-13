@@ -86,8 +86,10 @@ class KNNSampler(Sampler):
         self.steps = 0
         self.print_steps = self.update_steps * 10
         self.p_steps = 0
-        self.features = torch.zeros(self.num_labels, self.dim)
-        self.losses = torch.zeros(self.num_labels)
+        torch.manual_seed(0)
+        self.features = torch.rand(self.num_labels, self.dim)
+        self.losses = torch.rand(self.num_labels)
+        self.knn = torch.randint(0, self.num_labels, (self.num_labels, self.knn_num))
 
         data = open(filename, "r", encoding="utf8").readlines()
         dic1 = {}
