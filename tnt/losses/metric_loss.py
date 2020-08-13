@@ -100,6 +100,7 @@ class HCLoss(nn.Module):
         return dist
 
     def forward(self, feature, label):
+        feature = F.normalize(feature)
         batch_size, dim = feature.shape
         distance = self._euclidean(feature)
         loss = 0
@@ -141,7 +142,7 @@ class HCLoss(nn.Module):
             neg_phi = torch.exp(min_neg_dist - neg_dist[select_neg_index])
             between_phi = neg_phi.mean()
 
-            factor = torch.tensor(self.beta, device=feature.device)
+            factor = torch.tensor(self.beta, device=feature.device, requires_grad=False)
             if max_pos_dist - min_neg_dist < self.max_gap:
                 exp_adj = torch.exp(max_pos_dist - min_neg_dist)
                 loss_one = torch.log(1 + self.beta * within_phi * between_phi * exp_adj)/torch.log(1 + factor)

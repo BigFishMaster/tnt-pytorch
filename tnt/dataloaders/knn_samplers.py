@@ -16,7 +16,11 @@ class KNNDataLoader(Dataset):
         num_labels = len(dic1)
         for label in range(num_labels):
             samples = dic1[label]
-            samples = samples[:batch_size]
+            if len(samples) < batch_size:
+                samples = samples * batch_size
+                samples = samples[:batch_size]
+            else:
+                samples = samples[:batch_size]
             data_list.extend(samples)
         self.data_list = data_list
         logger.info("In DataLoader, data length:{}".format(len(self.data_list)))
@@ -30,7 +34,7 @@ class KNNDataLoader(Dataset):
                 "ten_crop": False,
                 "preserve_aspect_ratio": 0,
                 "random_erase": False,
-                "image_scale": 0.875,
+                "image_scale": 1.0,
                 "random_crop": False,
                 "random_hflip": False,
                 "random_vflip": False,
