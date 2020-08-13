@@ -64,6 +64,7 @@ class TransformImage(object):
 
         # https://github.com/tensorflow/models/blob/master/research/inception/inception/image_processing.py#L294
         self.scale = opts.image_scale
+        self.erase_count = opts.erase_count
         self.preserve_aspect_ratio = opts.preserve_aspect_ratio
         self.random_crop = opts.random_crop if self.is_train else False
         self.random_hflip = opts.random_hflip if self.is_train else False
@@ -136,7 +137,7 @@ class TransformImage(object):
         tfs.append(transforms.Normalize(mean=self.mean, std=self.std))
 
         if self.random_erase:
-            tfs.append(RandomErasing(0.5, device="cpu"))
+            tfs.append(RandomErasing(0.5, max_count=self.erase_count, device="cpu"))
 
         self.tf = transforms.Compose(tfs)
 

@@ -91,6 +91,7 @@ class ModelBuilder:
         # image transforms
         config["data"]["opts"].transform_type = config["transform_type"]
         config["data"]["opts"].image_scale = config["image_scale"]
+        config["data"]["opts"].erase_count = config["erase_count"]
         config["data"]["opts"].preserve_aspect_ratio = config["preserve_aspect_ratio"] != 0
         config["data"]["opts"].random_erase = config["enable_random_erase"]
         config["data"]["opts"].random_resized_crop = config["enable_random_resized_crop"]

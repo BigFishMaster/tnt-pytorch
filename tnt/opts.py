@@ -46,6 +46,8 @@ def basic_opts(parser):
                         help="number of epochs to train.")
     parser.add_argument("--image_scale", default=0.875, type=float,
                         help="image to be scaled before cropping.")
+    parser.add_argument("--erase_count", default=None, type=int,
+                        help="max number of random erase boxes.")
     parser.add_argument("--preserve_aspect_ratio", default=1, type=int,
                         help="whether to preserve image aspect ratio when scaling.")
     parser.add_argument("--relativelabelloss_gamma", default=0.2, type=float,
