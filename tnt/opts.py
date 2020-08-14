@@ -113,6 +113,8 @@ def convert_opts(parser):
                         help="l2 normalization for input.")
     parser.add_argument("--image_scale", default=0.875, type=float,
                         help="image to be scaled before cropping.")
+    parser.add_argument("--use_head", default=1, type=int,
+                        help="the head index of SimCLRV2 to finetune.")
 
 
 def comb_convert_opts(parser):
@@ -136,3 +138,5 @@ def comb_convert_opts(parser):
                         help="l2 normalization for input.")
     parser.add_argument("--image_scale", default="0.875,0.875", type=str,
                         help="image to be scaled before cropping.")
+    parser.add_argument("--use_head", default=1, type=int,
+                        help="the head index of SimCLRV2 to finetune.")

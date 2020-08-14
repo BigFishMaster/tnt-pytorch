@@ -154,7 +154,8 @@ def convert(config):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     extract_feature = config["extract_feature"]
-    model = ModelImpl(model_name, num_classes, extract_feature=extract_feature).model
+    use_head = config["use_head"]
+    model = ModelImpl(model_name, num_classes, extract_feature=extract_feature, use_head=use_head).model
     if "efficientnet" in model_name:
         model.set_swish(memory_efficient=False)
 
