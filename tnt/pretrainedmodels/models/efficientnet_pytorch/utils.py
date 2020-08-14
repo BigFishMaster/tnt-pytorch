@@ -608,14 +608,10 @@ def load_pretrained_weights(model, model_name, weights_path=None, load_fc=True, 
         state_dict = model_zoo.load_url(url_map_[model_name])
     
     if load_fc:
-        ret = model.load_state_dict(state_dict, strict=False)
-        assert not ret.missing_keys, f'Missing keys when loading pretrained weights: {ret.missing_keys}'
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
     else:
         state_dict.pop('_fc.weight')
         state_dict.pop('_fc.bias')
-        ret = model.load_state_dict(state_dict, strict=False)
-        assert set(ret.missing_keys) == set(
-            ['_fc.weight', '_fc.bias']), f'Missing keys when loading pretrained weights: {ret.missing_keys}'
-    assert not ret.unexpected_keys, f'Missing keys when loading pretrained weights: {ret.unexpected_keys}'
-
-    print('Loaded pretrained weights for {}'.format(model_name))
+        missing_keys, unexcepted_keys = model.load_state_dict(state_dict, strict=False)
+    print('Loaded pretrained weights for {}, missing keys:{}, unexcepted_keys:{}'.format(
+        model_name, missing_keys, unexcepted_keys))
