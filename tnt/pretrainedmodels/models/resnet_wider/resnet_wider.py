@@ -287,7 +287,7 @@ class ResNet(nn.Module):
 
     def load_param(self, pretrained):
         if pretrained:
-            checkpoint = torch.load(pretrained)
+            checkpoint = torch.load(pretrained, map_location=None if torch.cuda.is_available() else "cpu")
             state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
             missing_keys, unexcepted_keys = self.load_state_dict(state_dict, strict=False)
             print("loading pretrained weights, missing_keys:{}, unexcepted_keys:{}".format(
