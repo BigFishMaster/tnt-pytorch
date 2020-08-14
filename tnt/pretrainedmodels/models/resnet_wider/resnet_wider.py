@@ -224,8 +224,8 @@ class ResNet(nn.Module):
         if stride != 1 or self.inplanes != planes * block.expansion:
             if self.sk_ratio > 0:
                 downsample = nn.Sequential(
-                    nn.Identity(),
-                    nn.AvgPool2d(kernel_size=3, stride=stride, padding=1),
+                    nn.ReplicationPad2d(padding=(0, 1, 0, 1)),
+                    nn.AvgPool2d(kernel_size=2, stride=stride),
                     conv1x1(self.inplanes, planes * block.expansion, stride=1),
                     norm_layer(planes * block.expansion),
                 )
