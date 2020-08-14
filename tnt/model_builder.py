@@ -350,7 +350,7 @@ class ModelBuilder:
                     self.best_epoch = epoch + 1
                     self.min_valid_loss = valid_loss
                 logger.info('the best model is epoch %d, with loss: %f.' % (self.best_epoch, self.min_valid_loss))
-                if epoch % self.save_epoch_steps == 0:
+                if (epoch+1) % self.save_epoch_steps == 0:
                     # state_dict from model and optimizer
                     state={"epoch": epoch + 1,
                            "state_dict": self.model.state_dict(),
