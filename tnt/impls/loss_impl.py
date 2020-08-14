@@ -10,7 +10,7 @@ class LossImpl:
             beta = kwargs.get("classbalancedloss_beta", 0.9999)
             gamma = kwargs.get("classbalancedloss_gamma", 0.5)
             loss = losses.__dict__[loss_name](None, beta, gamma, loss_type)
-        elif loss_name in ["CosFaceLoss", "ArcFaceLoss", "MultipleCosFaceLoss"]:
+        elif loss_name in ["CosFaceLoss", "ArcFaceLoss", "MultipleCosFaceLoss", "CosFaceLossWithNeg"]:
             num_features = kwargs["num_features"]
             num_classes = kwargs["num_classes"]
             scale = kwargs["arcface_scale"]
