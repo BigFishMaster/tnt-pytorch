@@ -218,10 +218,10 @@ class EfficientNet(nn.Module):
         self._bn1 = nn.BatchNorm2d(num_features=out_channels, momentum=bn_mom, eps=bn_eps)
 
         self._swish = MemoryEfficientSwish()
+        self._avg_pooling = nn.AdaptiveAvgPool2d(1)
+        self._dropout = nn.Dropout(self._global_params.dropout_rate)
         if not self.extract_feature:
             # Final linear layer
-            self._avg_pooling = nn.AdaptiveAvgPool2d(1)
-            self._dropout = nn.Dropout(self._global_params.dropout_rate)
             self._fc = nn.Linear(out_channels, self._global_params.num_classes)
 
     def get_out_channels(self):
@@ -320,13 +320,13 @@ class EfficientNet(nn.Module):
         """
         # Convolution layers
         x = self.extract_features(inputs)
-        if self.extract_feature:
-            return x
-
         # Pooling and final linear layer
         x = self._avg_pooling(x)
         x = x.flatten(start_dim=1)
         x = self._dropout(x)
+        if self.extract_feature:
+            return x
+
         x = self._fc(x)
 
         return x
