@@ -90,6 +90,8 @@ def basic_opts(parser):
                         help="the head index of SimCLRV2 to finetune.")
     parser.add_argument("--disable_knn_build", default=False, action="store_true",
                         help="disable to build the KNN tree in hard sampling.")
+    parser.add_argument("--use_negative", default=None, type=str,
+                        help="use a negative file for CosFaceWithNegative.")
 
 
 def convert_opts(parser):

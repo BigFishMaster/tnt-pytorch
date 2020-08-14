@@ -145,6 +145,56 @@ class MultipleCosFaceLoss(nn.Module):
         return total_loss.unsqueeze(0), out_cosine
 
 
+class CosFaceLossWithNeg(nn.Module):
+
+    def __init__(self, feature_size, num_classes, s=30.0, m=0.40):
+        """
+        Args:
+            feature_size: usually 128, 256, 512 ...
+            num_classes: num of people when training
+            s: scale, see normface https://arxiv.org/abs/1704.06369
+            m: margin, see SphereFace, CosFace, and ArcFace paper
+        """
+        super(CosFaceLossWithNeg, self).__init__()
+        self.in_features = feature_size
+        self.out_features = num_classes
+        self.s = s
+        self.m = m
+        self.weight = nn.Parameter(torch.FloatTensor(self.out_features, self.in_features))
+        nn.init.xavier_uniform_(self.weight)
+        self.ce = nn.CrossEntropyLoss()
+
+    def output(self, feature):
+        cosine = F.linear(F.normalize(feature), F.normalize(self.weight))
+        return cosine
+
+    def forward(self, feature, label):
+        cosine = self.output(feature)
+
+        neg_index = label >= self.out_features
+        pos_index = label < self.out_features
+        neg_num = torch.sum(neg_index)
+        pos_num = torch.sum(pos_index)
+        loss = 0
+        if neg_num > 0:
+            neg_cosine = cosine[neg_index]
+            neg_max_score, neg_max_index = F.softmax(neg_cosine, dim=1).max(dim=1)
+            loss_neg = -torch.log(1 - neg_max_score).mean()
+            loss += loss_neg
+
+        if pos_num > 0:
+            pos_cosine = cosine[pos_index]
+            pos_label = label[pos_index]
+            phi = pos_cosine - self.m
+            output = pos_cosine * 1.0  # make backward works
+            batch_size = len(output)
+            output[range(batch_size), pos_label] = phi[range(batch_size), pos_label]
+            loss_pos = self.ce(output * self.s, pos_label)
+            loss += loss_pos
+
+        return loss, cosine
+
+
 if __name__ == "__main__":
     feature = torch.rand((10, 2048))
     label = torch.randint(0, 100, size=(160,))

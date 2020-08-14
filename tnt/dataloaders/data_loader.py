@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from collections import Counter
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import WeightedRandomSampler
@@ -15,6 +16,20 @@ class GeneralDataLoader(Dataset):
         self.data_list = open(filename, "r", encoding="utf8").readlines()
         self.data_list = np.array(self.data_list, dtype=np.string_)
         logger.info("In mode {}, data_list has length of {}.".format(mode, len(self.data_list)))
+
+        if mode == "train" and cfg["use_negative"] is not None:
+            negative_info = cfg["use_negative"].split(":")
+            if len(negative_info) == 1:
+                self.use_negative = negative_info[0]
+                self.use_negative_ratio = 0.2
+            elif len(negative_info) == 2:
+                self.use_negative = negative_info[0]
+                self.use_negative_ratio = float(negative_info[1])
+            self.negative_data_list = open(self.use_negative, "r", encoding="utf8").readlines()
+            self.negative_data_list = np.array(self.negative_data_list, dtype=np.string_)
+            logger.info("In mode {}, negative_data_list has length of {}.".format(mode, len(self.negative_data_list)))
+        else:
+            self.use_negative = None
 
         # field processor
         self._field = Field.from_cfg(cfg, mode=mode)
@@ -50,6 +65,9 @@ class GeneralDataLoader(Dataset):
 
     def __getitem__(self, index):
         data = self.data_list[index].decode()
+        if self.use_negative is not None and random.random() < self.use_negative_ratio:
+            index = random.randint(0, len(self.negative_data_list)-1)
+            data = self.negative_data_list[index].decode()
         # there are two cases:
         # train or valid:
         # 1. normal:       image, label
