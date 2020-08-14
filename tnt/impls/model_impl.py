@@ -27,7 +27,7 @@ class ModelImpl:
                 model = MultiPoolingModel(model_name, num_classes, mp_layers, pretrained)
                 logger.info("MultiPoolingModel with name: {} and feature: {}.".format(model_name, num_classes))
             elif extract_feature: # support resnest and efficientnet_pytorch
-                kwargs = {"extract_feature": extract_feature}
+                kwargs = {"extract_feature": extract_feature, "num_classes": -1}
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             elif last_two_layers:
                 kwargs = {"last_two_layers": last_two_layers}
