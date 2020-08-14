@@ -27,7 +27,8 @@ class GeneralDataLoader(Dataset):
                 self.use_negative_ratio = float(negative_info[1])
             self.negative_data_list = open(self.use_negative, "r", encoding="utf8").readlines()
             self.negative_data_list = np.array(self.negative_data_list, dtype=np.string_)
-            logger.info("In mode {}, negative_data_list has length of {}.".format(mode, len(self.negative_data_list)))
+            logger.info("In mode {}, negative_data_list has length of {} with ratio {}".format(
+                mode, len(self.negative_data_list), self.use_negative_ratio))
         else:
             self.use_negative = None
 
