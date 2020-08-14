@@ -195,7 +195,9 @@ class ResNet(nn.Module):
         if self.use_head >= 2:
             self.head2 = nn.Linear(head_dim, head_dim, bias=False)
             self.head_bn2 = nn.BatchNorm1d(head_dim)
-        self.fc = nn.Linear(head_dim, num_classes)
+
+        if self.use_head >= 0:
+            self.fc = nn.Linear(head_dim, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -278,7 +280,10 @@ class ResNet(nn.Module):
             x = self.head_bn2(x)
             x = self.relu(x)
 
-        x = self.fc(x)
+        if self.use_head < 0:
+            return x
+        else:
+            x = self.fc(x)
 
         return x
 
