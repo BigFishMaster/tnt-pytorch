@@ -143,6 +143,7 @@ def Int2Bool(x):
 def comb_convert(config):
     model_name = config["model_name"].split(",")
     weight_path = config["weight"].split(",")
+    use_head = [int(u) for u in config["use_head"].split(",")]
     image_scale = [float(s) for s in config["image_scale"].split(",")]
     image_target_list = [[int(sz)] for sz in config["image_size"].split(",")]
     image_size_list = [[int(sz[0] / image_scale[i])] for i, sz in enumerate(image_target_list)]
@@ -158,7 +159,7 @@ def comb_convert(config):
     graphs = []
     models = []
     for index, param in enumerate(zip(model_name, weight_path, image_scale, image_target_list,
-                                      output_dir, image_path, num_classes, extract_feature)):
+                                      output_dir, image_path, num_classes, extract_feature, use_head)):
         tf_graph_name, pytorch_model = convert_tf_graph(*param, index=index)
         graphs.append(tf_graph_name)
         models.append(pytorch_model)
@@ -167,15 +168,14 @@ def comb_convert(config):
                         l2norm, output_dir[0], image_path[0])
 
 
-
 def convert_tf_graph(model_name, weight_path, image_scale, image_target_list,
-            output_dir, image_path, num_classes, extract_feature, index=0):
+            output_dir, image_path, num_classes, extract_feature, use_head=0, index=0):
     torch.random.manual_seed(0)
 
     image_size = image_target_list[0]
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    model = ModelImpl(model_name, num_classes, extract_feature=extract_feature).model
+    model = ModelImpl(model_name, num_classes, extract_feature=extract_feature, use_head=use_head).model
     model_name = model_name + "_" + str(index)
     logger.info("loading model name {} is ok.".format(model_name))
 
