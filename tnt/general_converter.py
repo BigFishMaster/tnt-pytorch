@@ -39,9 +39,10 @@ class CustomModule(tf.Module):
         self.means = []
         self.stds = []
         self.ps = []
+        self.ws = []
         self.model_funcs = []
         for item in group:
-            g1, scale1, target1, size1, mean1, std1, p1 = item
+            g1, scale1, target1, size1, mean1, std1, p1, s1 = item
             graph_def1 = tf.compat.v1.GraphDef()
             graph_def1.ParseFromString(open(g1, "rb").read())
             self.model_funcs.append(wrap_function.function_from_graph_def(graph_def1, inputs="input1:0", outputs="output1:0"))
@@ -51,6 +52,7 @@ class CustomModule(tf.Module):
             self.means.append(mean1)
             self.stds.append(std1)
             self.ps.append(p1)
+            self.ws.append(s1)
 
     @tf.function(input_signature=[tf.TensorSpec([None, None, 3], tf.uint8, name="input_image")])
     def extract_feature(self, image):
@@ -93,6 +95,7 @@ class CustomModule(tf.Module):
                                             self.means[0], self.stds[0], self.ps[0], self.model_funcs[0])
         if self.l2norm:
             output_global = tf.nn.l2_normalize(output_global, axis=1, name="global_l2norm0")
+            output_global = output_global * self.ws[0]
         # Loop over subsequent scales.
         for ind in range(1, len(self.model_funcs)):
             tf.autograph.experimental.set_loop_options(
@@ -102,6 +105,7 @@ class CustomModule(tf.Module):
                                                    self.means[ind], self.stds[ind], self.ps[ind], self.model_funcs[ind])
             if self.l2norm:
                 global_descriptor = tf.nn.l2_normalize(global_descriptor, axis=1, name="global_l2norm"+str(ind))
+                global_descriptor = global_descriptor * self.ws[ind]
             output_global = tf.concat([output_global, global_descriptor], 1)
 
 
@@ -143,6 +147,7 @@ def Int2Bool(x):
 def comb_convert(config):
     model_name = config["model_name"].split(",")
     weight_path = config["weight"].split(",")
+    scales = [float(s) for s in config["feature_scale"].split(",")]
     use_head = [int(u) for u in config["use_head"].split(",")]
     image_scale = [float(s) for s in config["image_scale"].split(",")]
     image_target_list = [[int(sz)] for sz in config["image_size"].split(",")]
@@ -164,7 +169,7 @@ def comb_convert(config):
         graphs.append(tf_graph_name)
         models.append(pytorch_model)
         print("convert tf-graph {} is ok.".format(index))
-    convert_saved_model(graphs, models, p, image_size_list, image_target_list,
+    convert_saved_model(graphs, models, p, scales, image_size_list, image_target_list,
                         l2norm, output_dir[0], image_path[0])
 
 
@@ -242,17 +247,17 @@ def convert_tf_graph(model_name, weight_path, image_scale, image_target_list,
     return output_tfgraph_name, model
 
 
-def convert_saved_model(g, m, p, size_lists, target_lists, l2norm, output_dir, image_path):
+def convert_saved_model(g, m, p, s, size_lists, target_lists, l2norm, output_dir, image_path):
     """Convert tf-graph to saved_model."""
     group = []
-    for i, (g1, m1, p1) in enumerate(zip(g, m, p)):
+    for i, (g1, m1, p1, s1) in enumerate(zip(g, m, p, s)):
         scale1 = 255.0 if max(m1.input_range) == 1.0 else 1.0
         target1 = tf.constant(target_lists[i], dtype=tf.int32, name="image_target_list"+str(i))
         size1 = tf.constant(size_lists[i], dtype=tf.int32, name="image_size_list"+str(i))
         mean1 = tf.constant(m1.mean, dtype=tf.float32, shape=(1,1,3), name="input_mean"+str(i))
         std1 = tf.constant(m1.std, dtype=tf.float32, shape=(1,1,3), name="input_std"+str(i))
         print("tf mean1:", mean1, "tf std1:", std1)
-        group.append((g1, scale1, target1, size1, mean1, std1, p1))
+        group.append((g1, scale1, target1, size1, mean1, std1, p1, s1))
     module = CustomModule(group, l2norm=l2norm)
     output_savedmodel_name = os.path.join(output_dir, "saved_model/")
     signatures = {

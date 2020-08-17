@@ -126,6 +126,8 @@ def comb_convert_opts(parser):
                         help="model name to convert")
     parser.add_argument("--weight", default="path,path", type=str,
                         help="checkpoint path to load model weights.")
+    parser.add_argument("--feature_scale", default="0.1,0.2,0.1", type=str,
+                        help="Feature scale for each model.")
     parser.add_argument("--output_dir", default="output_convert/", type=str,
                         help="output path to save converted tensorflow models.")
     parser.add_argument("--extract_feature", default="1,1", type=str,
