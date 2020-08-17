@@ -86,6 +86,8 @@ def basic_opts(parser):
                         help="Use multiple pooling for conv5.")
     parser.add_argument("--last_two_layers", default=False, action="store_true",
                         help="Use last two layers to extract features")
+    parser.add_argument("--additional_linear", default=0, type=int,
+                        help="add an additional linear layer for losses, like CosFaceLoss.")
     parser.add_argument("--mp_layers", default="conv+relu", type=str,
                         help="multiple pooling layers.")
     parser.add_argument("--use_head", default=1, type=int,
@@ -94,6 +96,8 @@ def basic_opts(parser):
                         help="disable to build the KNN tree in hard sampling.")
     parser.add_argument("--use_negative", default=None, type=str,
                         help="use a negative file for CosFaceWithNegative.")
+    parser.add_argument("--use_accum_weights", default=False, action="store_true",
+                        help="accumulate model weights with a momentum of 0.999.")
 
 
 def convert_opts(parser):

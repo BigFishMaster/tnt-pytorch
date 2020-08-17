@@ -13,7 +13,7 @@ from tnt.pretrainedmodels.models.resnet_wider.resnet_wider \
 class ModelImpl:
     def __init__(self, model_name_or_path, num_classes, pretrained=None, gpu=None,
                  extract_feature=False, multiple_pooling=False, last_two_layers=False,
-                 mp_layers="conv+relu", use_head=1):
+                 additional_linear=0, mp_layers="conv+relu", use_head=1):
         if os.path.exists(model_name_or_path):
             model_file = model_name_or_path
             model = load_model_from_file(model_file)
@@ -31,6 +31,9 @@ class ModelImpl:
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             elif last_two_layers:
                 kwargs = {"last_two_layers": last_two_layers}
+                model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
+            elif additional_linear > 0:
+                kwargs = {"additional_linear": additional_linear, "num_classes": num_classes}
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, **kwargs)
             elif "bit" in model_name: # Big Transfer
                 model = pretrainedmodels.__dict__[model_name](pretrained=pretrained, num_classes=num_classes)
@@ -115,8 +118,9 @@ class ModelImpl:
         extract_feature = config["extract_feature"]
         multiple_pooling = config["multiple_pooling"]
         last_two_layers = config["last_two_layers"]
+        additional_linear = config["additional_linear"]
         mp_layers = config["mp_layers"]
         use_head = config["use_head"]
         self = cls(model_name, num_classes, pretrained, gpu, extract_feature,
-                   multiple_pooling, last_two_layers, mp_layers, use_head)
+                   multiple_pooling, last_two_layers, additional_linear, mp_layers, use_head)
         return self.model

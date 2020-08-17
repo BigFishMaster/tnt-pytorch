@@ -9,6 +9,7 @@
 import math
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from .splat import SplAtConv2d
 
@@ -167,7 +168,7 @@ class ResNet(nn.Module):
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
                  last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False,
-                 multiple_pooling=False, last_two_layers=False):
+                 multiple_pooling=False, last_two_layers=False, additional_linear=0):
         self.input_space = input_space
         self.input_range = input_range
         self.input_size = input_sizes
@@ -187,6 +188,7 @@ class ResNet(nn.Module):
         self.extract_feature = extract_feature
         self.multiple_pooling = multiple_pooling
         self.last_two_layers = last_two_layers
+        self.additional_linear = additional_linear
 
         super(ResNet, self).__init__()
         self.rectified_conv = rectified_conv
@@ -240,6 +242,9 @@ class ResNet(nn.Module):
         self.drop = nn.Dropout(final_drop) if final_drop > 0.0 else None
         if self.extract_feature is False and self.multiple_pooling is False:
             self.fc = nn.Linear(512 * block.expansion, num_classes)
+
+        if self.additional_linear > 0:
+            self.weight = nn.Parameter(torch.FloatTensor(self.additional_linear, num_classes))
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -336,5 +341,8 @@ class ResNet(nn.Module):
             return output
         else:
             x = self.fc(x)
+
+        if self.additional_linear > 0:
+            x = F.linear(F.normalize(x), F.normalize(self.weight))
 
         return x
