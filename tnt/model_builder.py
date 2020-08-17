@@ -11,6 +11,7 @@ from tnt.utils.statistics import Statistics
 from tnt.utils.metric import Metric
 from tnt.impls import *
 from tnt.pretrainedmodels.models.facenet import face_model_names
+from tnt.utils.accum_weights import AccumWeights
 
 
 class ModelBuilder:
@@ -53,6 +54,7 @@ class ModelBuilder:
         self.fix_bn = config["optimizer"].get("fix_bn", False)
         self.fix_res = config["optimizer"].get("fix_res", False)
         self.fix_finetune = config["optimizer"].get("fix_finetune", False)
+        self.use_accum_weights = config["optimizer"].get("use_accum_weights", False)
         # tensorboard logging
         self.tb_log = config["tb_log"]
         logger.info("fix batchnorm:{}".format(self.fix_bn))
@@ -203,6 +205,9 @@ class ModelBuilder:
 
     def _run_epoch(self, data_iter, mode="test"):
         if mode == "train":
+            if self.use_accum_weights:
+               accumer = AccumWeights(self.model)
+
             if self.others is not None:
                 self.others.train()
             self.model.train()
@@ -300,6 +305,9 @@ class ModelBuilder:
                         self.optimizer.step()
                         self.optimizer.zero_grad()
 
+                    if self.use_accum_weights:
+                        accumer.update_avg(self.model)
+
                 if hasattr(self.loss, "loss1") and hasattr(self.loss, "loss2"):
                     out_loss = [loss.item()]
                     out_loss.append(self.loss.loss1)
@@ -334,6 +342,10 @@ class ModelBuilder:
                 logger.info("(%s) step %s; batch size: %s" % (mode, step+1, output.shape[0]))
                 self._out(output)
                 pass
+
+        if mode == "train" and self.use_accum_weights:
+            accumer.update_cur(self.model)
+
         report_stats.print(mode, step+1, self.train_epochs+1, learning_rate, start)
         if self.tb_log:
             report_stats.log("progress/"+mode, self.writer, learning_rate, self.train_epochs+1)

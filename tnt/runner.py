@@ -71,6 +71,7 @@ def create_config():
     config["optimizer"]["fix_bn"] = config["fix_bn"]
     config["optimizer"]["fix_res"] = config["fix_res"]
     config["optimizer"]["fix_finetune"] = config["fix_finetune"]
+    config["optimizer"]["use_accum_weights"] = config["use_accum_weights"]
     config["model"]["gpu"] = config["global"]["gpu"]
     config["model"]["loss_name"] = config["loss"]["name"]
     config["model"]["num_classes"] = config["data"]["num_classes"]
