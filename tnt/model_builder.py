@@ -305,8 +305,8 @@ class ModelBuilder:
                         self.optimizer.step()
                         self.optimizer.zero_grad()
 
-                    if self.use_accum_weights:
-                        accumer.update_avg(self.model)
+                        if self.use_accum_weights:
+                            accumer.update_avg(self.model)
 
                 if hasattr(self.loss, "loss1") and hasattr(self.loss, "loss2"):
                     out_loss = [loss.item()]
