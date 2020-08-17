@@ -32,6 +32,8 @@ def basic_opts(parser):
                         help="disable the pin memory in dataloader.")
     parser.add_argument("--fix_res", default=False, action="store_true",
                         help="fix resolution by fine-tune last BN and linear layer.")
+    parser.add_argument("--fix_finetune", default=False, action="store_true",
+                        help="fix parameter before the last linear layer and that in loss both.")
     parser.add_argument("--keep_last_layer", default=False, action="store_true",
                         help="keep weights of last layer when weighting model.")
     parser.add_argument("--tb_log", default=1, type=int,

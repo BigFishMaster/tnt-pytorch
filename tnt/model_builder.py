@@ -52,6 +52,7 @@ class ModelBuilder:
         # it can be used when the performance is affected by batch size.
         self.fix_bn = config["optimizer"].get("fix_bn", False)
         self.fix_res = config["optimizer"].get("fix_res", False)
+        self.fix_finetune = config["optimizer"].get("fix_finetune", False)
         # tensorboard logging
         self.tb_log = config["tb_log"]
         logger.info("fix batchnorm:{}".format(self.fix_bn))
@@ -231,6 +232,19 @@ class ModelBuilder:
                 # train the running mean and running var of the last BN.
                 # the gradients of the scale and bias are not trained.
                 last_bn.train()
+            elif self.fix_finetune:
+                self.model.eval()
+                last_ln = None
+                for name, module in self.model.named.modules():
+                    class_name = module.__class__.__name__
+                    if class_name == "Linear":
+                        last_ln = module
+                for param in self.model.parameters():
+                    param.requires_grad = False
+                for param in last_ln.parameters():
+                    param.requires_grad = True
+                if self.others is not None:
+                    self.others.eval()
         else:
             if self.others is not None:
                 self.others.eval()
