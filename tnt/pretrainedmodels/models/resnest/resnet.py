@@ -168,7 +168,8 @@ class ResNet(nn.Module):
                  avd=False, avd_first=False,
                  final_drop=0.0, dropblock_prob=0,
                  last_gamma=False, norm_layer=nn.BatchNorm2d, extract_feature=False,
-                 multiple_pooling=False, last_two_layers=False, additional_linear=0):
+                 multiple_pooling=False, last_two_layers=False, additional_linear=0,
+                 multiple_layer_concat=False):
         self.input_space = input_space
         self.input_range = input_range
         self.input_size = input_sizes
@@ -189,6 +190,7 @@ class ResNet(nn.Module):
         self.multiple_pooling = multiple_pooling
         self.last_two_layers = last_two_layers
         self.additional_linear = additional_linear
+        self.multiple_layer_concat = multiple_layer_concat
 
         super(ResNet, self).__init__()
         self.rectified_conv = rectified_conv
@@ -245,6 +247,12 @@ class ResNet(nn.Module):
 
         if self.additional_linear > 0:
             self.weight = nn.Parameter(torch.FloatTensor(self.additional_linear, num_classes))
+
+        if self.multiple_layer_concat:
+            self.conv_layer2 = nn.Conv2d(128*block.expansion, num_classes, kernel_size=1, stride=1, bias=False)
+            self.bn_layer2 = nn.BatchNorm2d(num_classes)
+            self.conv_layer3 = nn.Conv2d(256*block.expansion, num_classes, kernel_size=1, stride=1, bias=False)
+            self.bn_layer3 = nn.BatchNorm2d(num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -323,9 +331,9 @@ class ResNet(nn.Module):
         x = self.maxpool(x)
 
         x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        x2 = self.layer2(x)
+        x3 = self.layer3(x2)
+        x = self.layer4(x3)
         if self.multiple_pooling:
             return x
 
@@ -339,6 +347,21 @@ class ResNet(nn.Module):
             last = self.fc(x)
             output = torch.cat([x, last], dim=1)
             return output
+        elif self.multiple_layer_concat:
+            x2 = self.conv_layer2(x2)
+            x2 = self.bn_layer2(x2)
+            x2 = self.relu(x2)
+            x2 = self.avgpool(x2)
+            x2 = torch.flatten(x2, 1)
+            x3 = self.conv_layer3(x3)
+            x3 = self.bn_layer3(x3)
+            x3 = self.relu(x3)
+            x3 = self.avgpool(x3)
+            x3 = torch.flatten(x3, 1)
+            x4 = self.fc(x)
+            x4 = self.relu(x4)
+            output = torch.cat([x2, x3, x4], dim=1)
+            return output
         else:
             x = self.fc(x)
 
@@ -346,3 +369,14 @@ class ResNet(nn.Module):
             x = F.linear(F.normalize(x), F.normalize(self.weight))
 
         return x
+
+
+if __name__ == "__main__":
+    kwargs = {"multiple_layer_concat": True}
+    model = ResNet(Bottleneck, [3, 24, 36, 3],
+                   radix=2, groups=1, bottleneck_width=64,
+                   deep_stem=True, stem_width=64, avg_down=True,
+                   avd=True, avd_first=False, **kwargs)
+    input = torch.rand(1, 3, 224, 224)
+    output = model(input)
+    print(output.shape)

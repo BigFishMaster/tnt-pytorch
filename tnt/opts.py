@@ -88,6 +88,8 @@ def basic_opts(parser):
                         help="Use last two layers to extract features")
     parser.add_argument("--additional_linear", default=0, type=int,
                         help="add an additional linear layer for losses, like CosFaceLoss.")
+    parser.add_argument("--multiple_layer_concat", default=False, action="store_true",
+                        help="add multiple layer concat for network.")
     parser.add_argument("--mp_layers", default="conv+relu", type=str,
                         help="multiple pooling layers.")
     parser.add_argument("--use_head", default=1, type=int,

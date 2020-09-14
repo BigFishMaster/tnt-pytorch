@@ -80,6 +80,7 @@ def create_config():
     config["model"]["multiple_pooling"] = config["multiple_pooling"]
     config["model"]["last_two_layers"] = config["last_two_layers"]
     config["model"]["additional_linear"] = config["additional_linear"]
+    config["model"]["multiple_layer_concat"] = config["multiple_layer_concat"]
     config["model"]["mp_layers"] = config["mp_layers"]
     config["model"]["use_head"] = config["use_head"]
     config["loss"]["gpu"] = config["global"]["gpu"]
