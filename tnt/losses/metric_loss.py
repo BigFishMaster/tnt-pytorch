@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from .utils import generate_index
+from tnt.losses.utils import generate_index
 from tnt.utils.logging import logger, init_logger
 
 
@@ -183,7 +183,7 @@ class HCLossV2(nn.Module):
         each_class (int): sample number of each class.
         beta (float): loss scale. Default: ``10000.0``
         pos_nn (float): the ratio of nearest neighbour positive samples. Default: ``1.0``.
-        sample_type (float): negative sampling strategy. Default: ``ratio``. It can be
+        sample_type (str): negative sampling strategy. Default: ``ratio``. It can be
 
             * ``original``: :math:`neg\_num`
             * ``addative``: :math:`pos\_thres + margin`
@@ -252,7 +252,7 @@ class HCLossV2(nn.Module):
         # reshape the distance to shape: batch_size x batch_size
         distance = distance.reshape(batch_size, batch_size)
         # split distance to obtain postive-tensor and negative-tensor.
-        ignore, pos, neg = torch.split(distance, [1, self.each_class-1, batch_size-self.each_class])
+        ignore, pos, neg = torch.split(distance, [1, self.each_class-1, batch_size-self.each_class], dim=1)
         # set self-tensor with no gradients.
         ignore.requires_grad = False
 
@@ -260,30 +260,33 @@ class HCLossV2(nn.Module):
         # sort positive-tensor in ascending order.
         sorted_pos, _ = torch.sort(pos, dim=1)
         # select the positive threshold, beyond which positives are outliers.
-        pos_thres = sorted_pos[self.pos_num-1]
+        pos_thres = sorted_pos[:, self.pos_num-1].reshape(-1, 1)
         # normalize positive distances while skipping outliers.
         pos_phi = torch.where(pos<=pos_thres,
                               torch.exp(pos-pos_thres),
                               torch.zeros_like(pos))
         # calculate mean positive distance with available positive distances.
         real_pos_num = (pos_phi > 0).sum(dim=1, keepdim=True)
-        pos_mean = torch.sum(pos_phi, dim=1) / real_pos_num
+        pos_mean = torch.sum(pos_phi, dim=1, keepdim=True) / real_pos_num
 
         # calculate neg_thres according to pos_thres nad negative sampling strategy.
         neg_thres = self._negative_threshold(pos_thres)
         # calculate neg_min
-        neg_min, _ = neg.min(dim=1)
+        neg_min, _ = neg.min(dim=1, keepdim=True)
+        neg_max, _ = neg.max(dim=1, keepdim=True)
         # update neg_thres with neg_min: at least one negative distance is included.
         neg_thres = torch.where(neg_thres<neg_min, neg_min, neg_thres)
+        # update neg_thres with neg_max: at most all negative distances are included.
+        neg_thres = torch.where(neg_thres>neg_max, neg_max, neg_thres)
         # normalize negative distances while skipping outliers.
         neg_phi = torch.where(neg<=neg_thres,
                               torch.exp(neg_thres-neg),
                               torch.zeros_like(neg))
         real_neg_num = (neg_phi > 0).sum(dim=1, keepdim=True)
-        neg_mean = torch.sum(neg_phi, dim=1) / real_neg_num
+        neg_mean = torch.sum(neg_phi, dim=1, keepdim=True) / real_neg_num
 
         bias = pos_thres - neg_thres
-        theta = torch.reshape(pos_mean*neg_mean, shape=(-1, 1))
+        theta = pos_mean * neg_mean
         loss = self._surrogate_function(bias, theta)
         return loss
 
@@ -309,13 +312,14 @@ class HCLossV2(nn.Module):
             self._surrogate_approximate(bias, theta),
             self._surrogate_standard(bias, theta)
         )
+        loss = loss.mean()
         return loss
 
 
 if __name__ == "__main__":
     init_logger()
     torch.manual_seed(123)
-    loss_fn = HCLoss(5, pos_nn=0.8, sample_type="multiply", margin=0.1)
+    loss_fn = HCLossV2(batch_size=20, each_class=5, pos_nn=0.8, sample_type="multiply", margin=1.2)
     feature = torch.rand(20, 100)
     loss = loss_fn(feature)
     print("loss:", loss)
