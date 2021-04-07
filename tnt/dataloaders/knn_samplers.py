@@ -102,11 +102,10 @@ class KNNSampler(Sampler):
             dic1[label].append(item.strip())
         logger.info("labels to initialize knn: {}".format(len(dic1)))
         # Note: each batch will contain multiple labels, like: 0 0 0 0 1 1 1 1 2 2 2 2
-        self.num_each_class = 5
-        if self.batch_size % self.num_each_class != 0:
+        if self.batch_size % self.each_class != 0:
             raise ValueError("When build knn trees, batch_size {} must be divided by num_each_class {}.".format(
-                self.batch_size, self.num_each_class))
-        self.dataloader = KNNDataLoader.from_dict(dic1, num_each_class=self.num_each_class, batch_size=self.batch_size,
+                self.batch_size, self.each_class))
+        self.dataloader = KNNDataLoader.from_dict(dic1, num_each_class=self.each_class, batch_size=self.batch_size,
                                                   data_prefix=data_prefix)
 
     def build(self, model):
@@ -117,12 +116,12 @@ class KNNSampler(Sampler):
                     logger.info("building knn sampler: {} labels".format(label*self.batch_size//self.num_each_class))
                 input, target = batch
                 output = model(input)
-                output = output.reshape(-1, self.num_each_class, self.dim)
+                output = output.reshape(-1, self.each_class, self.dim)
                 cur_label_num = len(output)
                 for i in range(cur_label_num):
                     # num_each_class x dim
                     output_norm = F.normalize(output[i])
-                    one_label = int(target[i*self.num_each_class].item())
+                    one_label = int(target[i*self.each_class].item())
                     self.features[one_label] = output_norm.mean(0)
                     loss = 1.0 - torch.matmul(output_norm, output_norm.t()).min().item()
                     self.losses[one_label] = max(loss, 1e-6)
