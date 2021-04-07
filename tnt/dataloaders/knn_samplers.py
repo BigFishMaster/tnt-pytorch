@@ -113,7 +113,7 @@ class KNNSampler(Sampler):
         with torch.no_grad():
             for label, batch in enumerate(self.dataloader):
                 if label % 100 == 0:
-                    logger.info("building knn sampler: {} labels".format(label*self.batch_size//self.num_each_class))
+                    logger.info("building knn sampler: {} labels".format(label*self.batch_size//self.each_class))
                 input, target = batch
                 output = model(input)
                 output = output.reshape(-1, self.each_class, self.dim)
