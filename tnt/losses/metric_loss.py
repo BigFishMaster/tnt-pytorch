@@ -253,8 +253,6 @@ class HCLossV2(nn.Module):
         distance = distance.reshape(batch_size, batch_size)
         # split distance to obtain postive-tensor and negative-tensor.
         ignore, pos, neg = torch.split(distance, [1, self.each_class-1, batch_size-self.each_class], dim=1)
-        # set self-tensor with no gradients.
-        ignore.requires_grad = False
 
         """hard sampling"""
         # sort positive-tensor in ascending order.
@@ -267,6 +265,7 @@ class HCLossV2(nn.Module):
                               torch.zeros_like(pos))
         # calculate mean positive distance with available positive distances.
         real_pos_num = (pos_phi > 0).sum(dim=1, keepdim=True)
+        real_pos_num = real_pos_num.float()
         pos_mean = torch.sum(pos_phi, dim=1, keepdim=True) / real_pos_num
 
         # calculate neg_thres according to pos_thres nad negative sampling strategy.
@@ -279,13 +278,16 @@ class HCLossV2(nn.Module):
         # update neg_thres with neg_max: at most all negative distances are included.
         neg_thres = torch.where(neg_thres>neg_max, neg_max, neg_thres)
         # normalize negative distances while skipping outliers.
+        # neg_thres is used to select negative pairs, and
+        # neg_min is used to control numerical problem.
         neg_phi = torch.where(neg<=neg_thres,
-                              torch.exp(neg_thres-neg),
+                              torch.exp(neg_min-neg),
                               torch.zeros_like(neg))
         real_neg_num = (neg_phi > 0).sum(dim=1, keepdim=True)
+        real_neg_num = real_neg_num.float()
         neg_mean = torch.sum(neg_phi, dim=1, keepdim=True) / real_neg_num
 
-        bias = pos_thres - neg_thres
+        bias = pos_thres - neg_min
         theta = pos_mean * neg_mean
         loss = self._surrogate_function(bias, theta)
         return loss
@@ -308,7 +310,7 @@ class HCLossV2(nn.Module):
 
         """
         loss = torch.where(
-            theta > self.max_gap,
+            bias > self.max_gap,
             self._surrogate_approximate(bias, theta),
             self._surrogate_standard(bias, theta)
         )
