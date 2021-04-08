@@ -73,9 +73,10 @@ class KNNSampler(Sampler):
                 num_samples, batch_size))
         self.each_class = each_class
         self.num_samples = num_samples
-        self.sampling_depth = 2
         self.target_num = num_samples // each_class
         self.target_each_batch = batch_size // each_class
+        # duplicate the depth
+        self.sampling_depth = self.target_each_batch * 2
         logger.info("num_samples: {}, each_class: {}, target_num: {}, target_each_class:{}".format(
             self.num_samples, self.each_class, self.target_num, self.target_each_batch))
         # TODO: include itself.
@@ -94,7 +95,7 @@ class KNNSampler(Sampler):
 
         data = open(filename, "r", encoding="utf8").readlines()
         dic1 = {}
-        for label, v in enumerate(label2index.items()):
+        for _, (label, v) in enumerate(label2index.items()):
             dic1[label] = [data[i].strip() for i in v]
         logger.info("labels to initialize knn: {}".format(len(dic1)))
         # Note: each batch will contain multiple labels, like: 0 0 0 0 1 1 1 1 2 2 2 2
@@ -154,7 +155,7 @@ class KNNSampler(Sampler):
                 logger.info("Hard Sampling with top-k label: {}.".format(p))
                 logger.info("Hard Sampling with top-k score: {}.".format(s))
 
-    def _select(self, label, output, depth=0):
+    def _select_bfs(self, label, output, depth=0):
         if depth >= self.sampling_depth:
             return
         knn_labels = [l for l in self.knn[label] if l != label and l not in output]
@@ -164,7 +165,24 @@ class KNNSampler(Sampler):
         for lab in selected_labels:
             if len(output) >= self.target_each_batch:
                 break
-            self._select(lab, output, depth+1)
+            self._select_bfs(lab, output, depth+1)
+
+    def _select_dfs(self, label, output, depth=0):
+        if depth >= self.sampling_depth:
+            return
+        selected_label = None
+        for l in self.knn[label]:
+            if l != label and l not in output:
+                selected_label = l
+                break
+        if selected_label is None:
+            return
+
+        output.update([selected_label])
+        if len(output) >= self.target_each_batch:
+            return
+        else:
+            self._select_dfs(selected_label, output, depth+1)
 
     def _sample(self):
         selected_labels = []
@@ -177,7 +195,7 @@ class KNNSampler(Sampler):
                     break
                 if label not in output:
                     output.update([label])
-                self._select(label, output, 0)
+                self._select_dfs(label, output, 0)
             batch_labels = list(output.keys())
             selected_labels.extend(batch_labels[:self.target_each_batch])
         if len(selected_labels) != self.target_num:
