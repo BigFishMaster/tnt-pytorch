@@ -376,20 +376,20 @@ class ModelBuilder:
                     self.best_epoch = epoch + 1
                     self.min_valid_loss = valid_loss
                 logger.info('the best model is epoch %d, with loss: %f.' % (self.best_epoch, self.min_valid_loss))
-                if (epoch+1) % self.save_epoch_steps == 0:
-                    # state_dict from model and optimizer
-                    state={"epoch": epoch + 1,
-                           "state_dict": self.model.state_dict(),
-                           "min_valid_loss": self.min_valid_loss,
-                           "best_epoch": self.best_epoch,
-                           "optimizer": self.optimizer.state_dict()}
-                    # check the state_dict from loss
-                    if self.others is not None:
-                        state.update({"loss_state_dict": self.loss.state_dict()})
-                    save_checkpoint(
-                        state=state,
-                        filename=self.save_model_file.format(epoch+1),
-                        save_checkpoint_file=self.save_checkpoint_file)
+            if (epoch+1) % self.save_epoch_steps == 0:
+                # state_dict from model and optimizer
+                state={"epoch": epoch + 1,
+                       "state_dict": self.model.state_dict(),
+                       "min_valid_loss": self.min_valid_loss,
+                       "best_epoch": self.best_epoch,
+                       "optimizer": self.optimizer.state_dict()}
+                # check the state_dict from loss
+                if self.others is not None:
+                    state.update({"loss_state_dict": self.loss.state_dict()})
+                save_checkpoint(
+                    state=state,
+                    filename=self.save_model_file.format(epoch+1),
+                    save_checkpoint_file=self.save_checkpoint_file)
             self.train_epochs += 1
 
         if self.tb_log:
