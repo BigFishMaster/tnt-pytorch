@@ -50,22 +50,17 @@ class MetricDataLoader(Dataset):
     def _create_sampler(self, cfg, mode):
         if mode == "test":
             return None
+        # Todo: DO NOT miss label from the file
         label2index = {}
         # process missing labels
-        old2new = {}
-        count = 0
         for i, data in enumerate(self.data_list):
             if i % 10000 == 0:
                 logger.info("creating sampler for data: %d/%d", i, len(self.data_list))
             label = self._field(data.decode(), last=True)
             label = label[0]
-            if label not in old2new:
-                old2new[label] = count
-                count += 1
-            new_label = old2new[label]
-            if new_label not in label2index:
-                label2index[new_label] = []
-            label2index[new_label].append(i)
+            if label not in label2index:
+                label2index[label] = []
+            label2index[label].append(i)
 
         logger.info("In mode {}, the length of label2index is {}.".format(mode, len(label2index)))
         each_class = cfg.get("each_class") or 5

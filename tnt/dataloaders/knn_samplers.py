@@ -94,12 +94,8 @@ class KNNSampler(Sampler):
 
         data = open(filename, "r", encoding="utf8").readlines()
         dic1 = {}
-        for i, item in enumerate(data):
-            path, label = item.strip().split()
-            label = int(label)
-            if label not in dic1:
-                dic1[label] = []
-            dic1[label].append(item.strip())
+        for label, v in enumerate(label2index.items()):
+            dic1[label] = [data[i].strip() for i in v]
         logger.info("labels to initialize knn: {}".format(len(dic1)))
         # Note: each batch will contain multiple labels, like: 0 0 0 0 1 1 1 1 2 2 2 2
         if self.batch_size % self.each_class != 0:
