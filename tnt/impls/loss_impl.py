@@ -21,13 +21,21 @@ class LossImpl:
             num_features = kwargs["num_features"]
             num_classes = kwargs["num_classes"]
             loss = losses.__dict__[loss_name](num_features, num_classes)
-        elif loss_name in ("HCLoss", "HCLossV2"):
+        elif loss_name == "HCLoss":
             each_class = kwargs["hc_each_class"]
             beta = kwargs["hc_beta"]
             pos_nn = kwargs["hc_pos_nn"]
             sample_type = kwargs["hc_sample_type"]
             margin = kwargs["hc_margin"]
             loss = losses.__dict__[loss_name](each_class, beta, pos_nn, sample_type, margin)
+        elif loss_name == "HCLossV2":
+            batch_size = kwargs["batch_size"]
+            each_class = kwargs["hc_each_class"]
+            beta = kwargs["hc_beta"]
+            pos_nn = kwargs["hc_pos_nn"]
+            sample_type = kwargs["hc_sample_type"]
+            margin = kwargs["hc_margin"]
+            loss = losses.__dict__[loss_name](batch_size, each_class, beta, pos_nn, sample_type, margin)
         else:
             loss = losses.__dict__[loss_name]()
         if loss_name in ["RelativeLabelLoss", "RelativeLabelLossV2"]:

@@ -200,6 +200,7 @@ class HCLossV2(nn.Module):
         self.sample_type = sample_type
         self.margin = margin
         self.max_gap = 20
+        self.log_num = 0
         # add buffer to deal with index order.
         select_index = generate_index(batch_size, each_class)
         self.register_buffer("select_index", select_index)
@@ -290,6 +291,15 @@ class HCLossV2(nn.Module):
         bias = pos_thres - neg_min
         theta = pos_mean * neg_mean
         loss = self._surrogate_function(bias, theta)
+        self.log_num += 1
+        if self.log_num % 100 == 0:
+            self.log_num = 0
+            logger.info("pos:{}\npos_thres:{}\npos_phi:{}\nreal_pos_num:{}\npos_mean:{}\n"
+                        "neg:{}\nneg_thres:{}\nneg_phi:{}\nreal_neg_num:{}\nneg_mean:{}\n"
+                        "bias:{}\ntheta:{}\nloss:{}\n".format(
+                pos, pos_thres, pos_phi, real_pos_num, pos_mean,
+                neg, neg_thres, neg_phi, real_neg_num, neg_mean,
+                bias, theta, loss))
         return loss
 
     def _surrogate_standard(self, bias, theta):

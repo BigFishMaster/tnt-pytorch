@@ -89,6 +89,7 @@ def create_config():
     config["loss"]["num_features"] = config["data"]["num_features"]
     config["loss"]["arcface_scale"] = config["arcface_scale"]
     config["loss"]["arcface_margin"] = config["arcface_margin"]
+    config["loss"]["batch_size"] = config["data"]["sampler"]["batch_size"]
     config["loss"]["hc_beta"] = config["hc_beta"]
     config["loss"]["hc_margin"] = config["hc_margin"]
     config["loss"]["hc_sample_type"] = config["hc_sample_type"]
