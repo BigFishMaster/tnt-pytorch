@@ -8,7 +8,6 @@ from tnt.dataloaders.knn_samplers import KNNSampler
 
 class MetricDataLoader(Dataset):
     def __init__(self, cfg, mode="train"):
-        self.num_classes = cfg["num_classes"]
         filename = cfg[mode]
         self.data_list = open(filename, "r", encoding="utf8").readlines()
         self.data_list = np.array(self.data_list, dtype=np.string_)
