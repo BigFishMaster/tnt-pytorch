@@ -21,7 +21,7 @@ class LossImpl:
             num_features = kwargs["num_features"]
             num_classes = kwargs["num_classes"]
             loss = losses.__dict__[loss_name](num_features, num_classes)
-        elif loss_name == "HCLoss":
+        elif loss_name in ("HCLoss", "HCLossV2"):
             each_class = kwargs["hc_each_class"]
             beta = kwargs["hc_beta"]
             pos_nn = kwargs["hc_pos_nn"]

@@ -6,4 +6,4 @@ from .losses import WeightLabelLoss
 from .losses import RelativeLabelLoss, RelativeLabelLossV2
 from .class_balanced_loss import ClassBalancedLoss
 from .face_loss import ArcFaceLoss, CosFaceLoss, MultipleCosFaceLoss, CosFaceLossWithNeg
-from .metric_loss import MetricCELoss, HCLoss
+from .metric_loss import MetricCELoss, HCLoss, HCLossV2
