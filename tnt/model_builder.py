@@ -107,6 +107,10 @@ class ModelBuilder:
         self.hard_sampling = config["data"]["sampler"].get("strategy") in ["knn_sampler"]
         self.disable_knn_build = config["disable_knn_build"]
         logger.info("whether hard sampling: {}".format(self.hard_sampling))
+        # A cache for metric learning
+        self.metric_cached = []
+        self.metric_accum_steps = config["data"]["sampler"].get("metric_accum_steps", 1)
+        self.metric_curr_steps = 0
 
     def update(self, config):
         if self.loss.name == "ClassBalancedLoss":
@@ -286,6 +290,19 @@ class ModelBuilder:
                         target = [t.cuda(self.gpu, non_blocking=True) for t in target]
                     else:
                         target = target.cuda(self.gpu, non_blocking=True)
+                self.metric_cached.append([output, target])
+                self.metric_curr_steps = (self.metric_curr_steps + 1) % self.metric_accum_steps
+                if self.metric_curr_steps == 0:
+                    if len(self.metric_cached) > 1:
+                        output = torch.vstack([k[0] for k in self.metric_cached])
+                        target = torch.vstack([k[1] for k in self.metric_cached])
+                    else:
+                        output = self.metric_cached[0]
+                        target = self.metric_cached[1]
+                    self.metric_cached = []
+                else:
+                    continue
+
                 loss = self.loss(output, target)
                 metric_output = None
                 if isinstance(loss, tuple) and len(loss) == 2:
@@ -354,12 +371,14 @@ class ModelBuilder:
     def run(self, train_iter=None, valid_iter=None, test_iter=None):
         if test_iter:
             self.fout = open(self.out_file, "w", encoding="utf8")
-            self._run_epoch(test_iter, mode="test")
-            self.fout.close()
+            with torch.no_grad():
+                self._run_epoch(test_iter, mode="test")
+                self.fout.close()
             return
 
         if valid_iter and not train_iter:
-            self._run_epoch(valid_iter, mode="valid")
+            with torch.no_grad():
+                self._run_epoch(valid_iter, mode="valid")
             return
 
         if self.hard_sampling and (not self.disable_knn_build):
