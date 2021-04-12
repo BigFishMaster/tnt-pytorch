@@ -64,7 +64,7 @@ class KNNDataLoader(Dataset):
 
 
 class KNNSampler(Sampler):
-    def __init__(self, label2index, batch_size, each_class, num_samples, filename, data_prefix):
+    def __init__(self, label2index, batch_size, each_class, num_samples, filename, data_prefix, search_type):
         self.num_labels = len(label2index)
         self.label2index = label2index
         # sampling: totally num_samples and each_class for one label.
@@ -81,6 +81,11 @@ class KNNSampler(Sampler):
             self.num_samples, self.each_class, self.target_num, self.target_each_batch))
         # TODO: include itself.
         self.batch_size = batch_size
+        self.search_type = search_type
+        if self.search_type == "bfs":
+            self.search_func = self._select_bfs
+        else:
+            self.search_func = self._select_dfs
         self.knn = None
         self.knn_num = 8
         self.dim = 512
@@ -138,7 +143,7 @@ class KNNSampler(Sampler):
                 local_features = features[start:end]
                 local_features_norm = F.normalize(local_features)
                 loss = torch.matmul(local_features_norm, local_features_norm.t()).min().item()
-                feature = F.normalize(local_features.mean(0), dim=0)
+                feature = local_features.mean(0)
                 label = labels[start]
                 self.features[label] = feature
                 self.losses[label] = max(1 - loss, 1e-6)
@@ -195,7 +200,7 @@ class KNNSampler(Sampler):
                     break
                 if label not in output:
                     output.update([label])
-                self._select_dfs(label, output, 0)
+                self.search_func(label, output, 0)
             batch_labels = list(output.keys())
             selected_labels.extend(batch_labels[:self.target_each_batch])
         if len(selected_labels) != self.target_num:

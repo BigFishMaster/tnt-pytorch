@@ -74,6 +74,8 @@ class MetricDataLoader(Dataset):
 
         strategy = cfg.get("strategy")
         if strategy == "knn_sampler" and mode == "train":
-            return KNNSampler(label2index, batch_size, each_class, num_samples, self.filename, self.data_prefix)
+            search_type = cfg.get("search_type", "bfs")
+            return KNNSampler(label2index, batch_size, each_class, num_samples,
+                              self.filename, self.data_prefix, search_type)
         else:
             return MetricDataSampler(label2index, each_class, num_samples)
