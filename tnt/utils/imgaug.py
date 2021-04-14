@@ -9,6 +9,7 @@ class Augment:
         input = open(path_to_file, "r").readlines()
         augmentor_images = []
         dic1 = {}
+        count = 0
         for i, item in enumerate(input):
             image_path, label = item.strip().split()
             if label not in dic1:
@@ -19,10 +20,15 @@ class Augment:
             num = repeat_target // len(values) + 1
             values = values * num
             for v in values:
-                a = AugmentorImage(image_path=v, output_directory=save_folder)
+                sub_folder = os.path.join(os.path.join(str(count//100%10), str(count//10%10)), str(count//1%10))
+                output_folder = os.path.join(save_folder, sub_folder)
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+                a = AugmentorImage(image_path=v, output_directory=output_folder)
                 a.class_label = "none"
                 a.file_format = "jpg"
                 augmentor_images.append(a)
+                count += 1
 
         print("Image list length:", len(augmentor_images))
         self.p.augmentor_images = augmentor_images
