@@ -90,6 +90,7 @@ class KNNSampler(Sampler):
         self.knn_num = 8
         self.dim = 512
         self.update_steps = 100
+        self.threshold = 0.8
         self.steps = 0
         self.print_steps = self.update_steps
         self.p_steps = 0
@@ -168,7 +169,9 @@ class KNNSampler(Sampler):
     def _select_bfs(self, label, output, depth=0):
         if depth >= self.sampling_depth:
             return
-        knn_labels = [l for l in self.knn[label] if l != label and l not in output]
+        knn_labels = [l for l in self.knn[label] if l != label
+                      and self.distance[label][l] <= self.threshold
+                      and l not in output]
         selected_length = min(self.target_each_batch-len(output), len(knn_labels))
         selected_labels = knn_labels[:selected_length]
         output.update(selected_labels)
