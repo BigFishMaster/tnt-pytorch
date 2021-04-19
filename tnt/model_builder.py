@@ -294,7 +294,7 @@ class ModelBuilder:
                 if mode == "train":
                     if self.hard_sampling:
                         with torch.no_grad():
-                            data_iter.sampler.update_v2(output, target, loss)
+                            data_iter.sampler.update(output, target, loss)
                     if len(loss.size()) > 0:
                         loss = loss.mean()
                     loss.backward()
