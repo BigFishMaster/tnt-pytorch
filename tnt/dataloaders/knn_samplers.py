@@ -94,6 +94,7 @@ class KNNSampler(Sampler):
         self.print_steps = self.update_steps
         self.p_steps = 0
         torch.manual_seed(0)
+        self.distance = None
         self.features = torch.rand(self.num_labels, self.dim)
         self.losses = torch.rand(self.num_labels)
         self.knn = torch.randint(0, self.num_labels, (self.num_labels, self.knn_num)).tolist()
@@ -128,8 +129,8 @@ class KNNSampler(Sampler):
                     loss = 1.0 - torch.matmul(output_norm, output_norm.t()).min().item()
                     self.losses[one_label] = max(loss, 1e-6)
 
-            distance = torch.matmul(self.features, self.features.t())
-            _, self.knn = distance.topk(self.knn_num, 1, True, True)
+            self.distance = torch.matmul(self.features, self.features.t())
+            _, self.knn = self.distance.topk(self.knn_num, 1, True, True)
             self.knn = self.knn.tolist()
             logger.info("initialize knn: {}".format(beautify_info(self.knn[:10])))
 
@@ -149,15 +150,20 @@ class KNNSampler(Sampler):
 
             self.steps = (self.steps + 1) % self.update_steps
             if self.steps == 0:
-                distance = torch.matmul(self.features, self.features.t())
-                _, self.knn = distance.topk(self.knn_num, 1, True, True)
+                self.distance = torch.matmul(self.features, self.features.t())
+                _, self.knn = self.distance.topk(self.knn_num, 1, True, True)
                 self.knn = self.knn.tolist()
 
             self.p_steps = (self.p_steps + 1) % self.print_steps
             if self.p_steps == 0:
                 s, p = self.losses.topk(10, 0, True, True)
+                logger.info("Hard Sampling with loss-max: {} and loss-min: {}.".format(
+                    self.losses.max(), self.losses.min()))
                 logger.info("Hard Sampling with top-k label: {}.".format(p))
                 logger.info("Hard Sampling with top-k score: {}.".format(s))
+                for i in range(len(self.knn)):
+                    logger.info("Hard Sampling with label:{}, KNN:{}, score:{}".format(
+                        i, self.knn[i], self.distance[i][self.knn[i]]))
 
     def _select_bfs(self, label, output, depth=0):
         if depth >= self.sampling_depth:
