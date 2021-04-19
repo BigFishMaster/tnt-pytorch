@@ -294,7 +294,9 @@ class ModelBuilder:
                 if mode == "train":
                     if self.hard_sampling:
                         with torch.no_grad():
-                            data_iter.sampler.update(output, target)
+                            data_iter.sampler.update_v2(output, target, loss)
+                    if len(loss.size()) > 0:
+                        loss = loss.mean()
                     loss.backward()
                     if (step+1) % self.accum_steps == 0:
                         self.lr_strategy.set_lr(optimizer=self.optimizer,
@@ -314,7 +316,8 @@ class ModelBuilder:
                     out_loss.append(self.loss.loss2)
                 else:
                     if len(loss.size()) > 0:
-                        out_loss = [loss.sum().item()]
+                        with torch.no_grad:
+                            out_loss = [loss.mean().item()]
                     else:
                         out_loss = [loss.item()]
                 if metric_output is not None:

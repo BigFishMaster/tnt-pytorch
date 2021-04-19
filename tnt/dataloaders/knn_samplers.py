@@ -133,7 +133,7 @@ class KNNSampler(Sampler):
             self.knn = self.knn.tolist()
             logger.info("initialize knn: {}".format(beautify_info(self.knn[:10])))
 
-    def update(self, features, labels):
+    def update(self, features, labels, losses):
         with torch.no_grad():
             batch_size = len(labels)
             num_label = batch_size // self.each_class
@@ -142,11 +142,10 @@ class KNNSampler(Sampler):
                 end = start + self.each_class
                 local_features = features[start:end]
                 local_features_norm = F.normalize(local_features)
-                loss = torch.matmul(local_features_norm, local_features_norm.t()).min().item()
-                feature = local_features.mean(0)
+                feature = local_features_norm.mean(0)
                 label = labels[start]
                 self.features[label] = feature
-                self.losses[label] = max(1 - loss, 1e-6)
+                self.losses[label] = losses[i]
 
             self.steps = (self.steps + 1) % self.update_steps
             if self.steps == 0:

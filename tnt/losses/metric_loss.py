@@ -324,7 +324,6 @@ class HCLossV2(nn.Module):
             self._surrogate_approximate(bias, theta),
             self._surrogate_standard(bias, theta)
         )
-        loss = loss.mean()
         return loss
 
 
