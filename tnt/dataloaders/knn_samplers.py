@@ -89,7 +89,7 @@ class KNNSampler(Sampler):
         self.knn = None
         self.knn_num = 8
         self.dim = 512
-        self.update_steps = 1000
+        self.update_steps = 100
         self.steps = 0
         self.print_steps = self.update_steps
         self.p_steps = 0
