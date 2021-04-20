@@ -245,6 +245,7 @@ class HCLossV2(nn.Module):
         Returns:
             :obj:`torch.FloatTensor`: The MetricCE loss over the batch.
         """
+        feature = F.normalize(feature)
         batch_size, dim = feature.shape
         # calculate the Euclidean distance of each pair.
         distance = self._euclidean(feature)
