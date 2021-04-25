@@ -235,7 +235,7 @@ class HCLossV2(nn.Module):
         dist = dist.reshape(-1)
         return dist
 
-    def forward(self, feature, label=None):
+    def forward_deplicated(self, feature, label=None):
         """ Calculate HC loss.
 
         Args:
@@ -245,7 +245,6 @@ class HCLossV2(nn.Module):
         Returns:
             :obj:`torch.FloatTensor`: The MetricCE loss over the batch.
         """
-        feature = F.normalize(feature)
         batch_size, dim = feature.shape
         # calculate the Euclidean distance of each pair.
         distance = self._euclidean(feature)
@@ -303,6 +302,22 @@ class HCLossV2(nn.Module):
                 bias, theta, loss))
         return loss
 
+    def forward(self, feature, label=None):
+        batch_size, _ = feature.shape
+        # calculate the Euclidean distance of each pair.
+        distance = self._euclidean(feature)
+        # re-order the values of distance as self-tensor, positive-tensor, negative-tensor.
+        distance = torch.gather(distance, 0, self.select_index)
+        # reshape the distance to shape: batch_size x batch_size
+        distance = distance.reshape(batch_size, batch_size)
+        # split distance to obtain postive-tensor and negative-tensor.
+        ignore, pos, neg = torch.split(distance, [1, self.each_class-1, batch_size-self.each_class], dim=1)
+
+        pos_phi = torch.exp(pos)
+        neg_phi = torch.exp(-neg)
+        loss = torch.log(1 + self.beta * pos_phi * neg_phi)/math.log(1 + self.beta)
+        return loss
+
     def _surrogate_standard(self, bias, theta):
         output = torch.log(1 + self.beta * theta * torch.exp(bias))/math.log(1 + self.beta)
         return output
@@ -320,11 +335,12 @@ class HCLossV2(nn.Module):
         Returns:
 
         """
-        loss = torch.where(
-            bias > self.max_gap,
-            self._surrogate_approximate(bias, theta),
-            self._surrogate_standard(bias, theta)
-        )
+        #loss = torch.where(
+        #    bias > self.max_gap,
+        #    self._surrogate_approximate(bias, theta),
+        #    self._surrogate_standard(bias, theta)
+        #)
+        loss = self._surrogate_standard(bias, theta)
         return loss
 
 
