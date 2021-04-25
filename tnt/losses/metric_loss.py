@@ -313,8 +313,8 @@ class HCLossV2(nn.Module):
         # split distance to obtain postive-tensor and negative-tensor.
         ignore, pos, neg = torch.split(distance, [1, self.each_class-1, batch_size-self.each_class], dim=1)
 
-        pos_phi = torch.exp(pos)
-        neg_phi = torch.exp(-neg)
+        pos_phi = torch.exp(pos).mean(dim=1)
+        neg_phi = torch.exp(-neg).mean(dim=1)
         loss = torch.log(1 + self.beta * pos_phi * neg_phi)/math.log(1 + self.beta)
         return loss
 
