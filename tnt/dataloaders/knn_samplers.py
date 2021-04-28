@@ -76,7 +76,7 @@ class KNNSampler(Sampler):
         self.target_num = num_samples // each_class
         self.target_each_batch = batch_size // each_class
         # duplicate the depth
-        self.sampling_depth = self.target_each_batch * 2
+        self.sampling_depth = 2
         logger.info("num_samples: {}, each_class: {}, target_num: {}, target_each_class:{}".format(
             self.num_samples, self.each_class, self.target_num, self.target_each_batch))
         # TODO: include itself.
@@ -87,18 +87,18 @@ class KNNSampler(Sampler):
         else:
             self.search_func = self._select_dfs
         self.knn = None
-        self.knn_num = 8
+        self.knn_num = 4
         self.dim = 512
         self.update_steps = 100
-        self.high_bound = 0.8
-        self.low_bound = 0.6
+        self.print_steps = 100
+        self.high_bound = 0.9
+        self.low_bound = 0.1
         self.steps = 0
-        self.print_steps = self.update_steps
         self.p_steps = 0
-        torch.manual_seed(0)
         self.distance = None
         self.features = torch.rand(self.num_labels, self.dim)
-        self.losses = torch.rand(self.num_labels)
+        # initialize loss with small values.
+        self.losses = torch.rand(self.num_labels) * 0.001
         self.knn = torch.randint(0, self.num_labels, (self.num_labels, self.knn_num)).tolist()
 
         data = open(filename, "r", encoding="utf8").readlines()
@@ -116,9 +116,9 @@ class KNNSampler(Sampler):
     def build(self, model):
         model.eval()
         with torch.no_grad():
-            for label, batch in enumerate(self.dataloader):
-                if label % 100 == 0:
-                    logger.info("building knn sampler: {} labels".format(label*self.batch_size//self.each_class))
+            for batch_idx, batch in enumerate(self.dataloader):
+                if batch_idx % 100 == 0:
+                    logger.info("building knn sampler: {} labels".format(batch_idx*self.batch_size//self.each_class))
                 input, target = batch
                 output = model(input)
                 output = output.reshape(-1, self.each_class, self.dim)
@@ -127,9 +127,8 @@ class KNNSampler(Sampler):
                     # num_each_class x dim
                     output_norm = F.normalize(output[i])
                     one_label = int(target[i*self.each_class].item())
+                    # Update feature only, expect the loss;
                     self.features[one_label] = output_norm.mean(0)
-                    loss = 1.0 - torch.matmul(output_norm, output_norm.t()).min().item()
-                    self.losses[one_label] = max(loss, 1e-6)
 
             self.distance = torch.matmul(self.features, self.features.t())
             _, self.knn = self.distance.topk(self.knn_num, 1, True, True)
@@ -148,7 +147,7 @@ class KNNSampler(Sampler):
                 feature = local_features_norm.mean(0)
                 label = labels[start]
                 self.features[label] = feature
-                self.losses[label] = losses[i]
+                self.losses[label] = losses[start]
 
             self.steps = (self.steps + 1) % self.update_steps
             if self.steps == 0:
@@ -171,8 +170,7 @@ class KNNSampler(Sampler):
         if depth >= self.sampling_depth:
             return
         knn_labels = [l for l in self.knn[label] if l != label
-                      and self.distance[label][l] <= self.high_bound
-                      and self.distance[label][l] >= self.low_bound
+                      and self.high_bound >= self.distance[label][l] >= self.low_bound
                       and l not in output]
         selected_length = min(self.target_each_batch-len(output), len(knn_labels))
         selected_labels = knn_labels[:selected_length]
@@ -221,7 +219,7 @@ class KNNSampler(Sampler):
     def __iter__(self):
         selected_labels = self._sample()
         if self.p_steps == 0:
-            logger.info("selected labels: {}".format(beautify_info(selected_labels[:self.target_each_batch])))
+            logger.info("selected labels: {}".format(beautify_info(selected_labels)))
         sample_list = []
         for sl in selected_labels:
             indices = self.label2index[sl]

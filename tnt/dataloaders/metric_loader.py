@@ -62,7 +62,7 @@ class MetricDataLoader(Dataset):
             label2index[label].append(i)
 
         logger.info("In mode {}, the length of label2index is {}.".format(mode, len(label2index)))
-        each_class = cfg.get("each_class") or 5
+        each_class = cfg.get("each_class") or 4
         if mode == "train":
             num_samples = cfg.get("num_samples") or (len(label2index) * each_class)
             batch_size = cfg.get("batch_size") or (20 * each_class)
